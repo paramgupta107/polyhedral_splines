@@ -1,0 +1,29 @@
+#ifndef T2PATCHCONSTRUCTOR_HPP
+#define T2PATCHCONSTRUCTOR_HPP
+
+#include <Eigen/Dense>
+#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
+#include "PatchConstructor.hpp"
+
+typedef Eigen::Matrix<double, 256, 20> EGMat256x20d;
+
+class T2PatchConstructor : public PatchConstructor
+{
+public:
+    T2PatchConstructor(const MeshType& a_Mesh)
+        : m_Mesh(a_Mesh), m_Mask(getMask()) {};
+
+    bool isSamePatchType(const FaceHandle& a_FaceHandle) override;
+    std::vector<Patch> getPatch(const FaceHandle& a_FaceHandle) override;
+
+private:
+    const MeshType& m_Mesh;
+    const EGMat256x20d m_Mask;
+
+    EGMat256x20d getMask();
+    //bool isPentagonTjunction(const FaceHandle& a_FaceHandle);
+    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
+
+};
+
+#endif //T2PATCHCONSTRUCTOR_HPP
