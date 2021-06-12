@@ -30,6 +30,8 @@ cmake ../Source
 make
 ```
 
+**Note:** macOS users need to make sure $PATH includes path to qt5 bin folder
+
 # - Usages #
 * Input:  mesh (with semi-structured layout) in .obj file format
 * Output: BB-coefficients written in .bv file format.
