@@ -18,17 +18,34 @@ typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 int main(int argc, char **argv)
 {
     // Check correct number of input arguments
-    if(argc != 2)
+    if(argc < 2)
     {
         std::cout << "\nArgument error!\n";
-        std::cout << "Correct usage:`./SemiStructuredSpline ${INPUT_FILENAME}`\n";
+        std::cout << "Correct usage:`./SemiStructuredSpline [OPTIONS] ${INPUT_FILENAME}`\n";
+        std::cout << "Options: \n";
+        std::cout << "-d --DEGREE_RAISE : raise deg 2 patches to deg 3. \n";
         return 1;
     }
 
+
+    bool t_IsDegRaise = false;
+
+    for (int i = 1; i < argc-1; i++)
+    {
+        if(std::string(argv[i]) == "--DEGREE_RAISE" || std::string(argv[i]) == "-d")
+        {
+            t_IsDegRaise = true;
+        }
+        else
+        {
+            std::cout << "Invalid arguments, please try again.\n";
+        }
+    }
+
+
     // Load mesh from .obj file
     MeshType t_Mesh;
-    const int t_PatchDeg = 2;
-    const std::string t_InputFile = argv[1];
+    const std::string t_InputFile = argv[argc-1];
     OpenMesh::IO::read_mesh(t_Mesh, t_InputFile);
 
     // Init output .bv file
@@ -36,7 +53,7 @@ int main(int argc, char **argv)
     PatchConsumer* t_BVWriterSerial= new BVWriterSerial(t_FileName);
 
     // Generate BB patches and write BB coef. to .bv file
-    serial::process_mesh(t_Mesh, t_BVWriterSerial);
+    serial::process_mesh(t_Mesh, t_BVWriterSerial, t_IsDegRaise);
 
     return 0;
 }

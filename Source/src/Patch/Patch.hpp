@@ -15,7 +15,7 @@ struct Patch
         for(int row=0; row<a_BiDeg+1; ++row){
             m_BBcoefs[row].resize(a_BiDeg+1);
         }
-        init_BB_coefs();
+        initBBcoefs();
     };
 
     Patch(int a_BiDeg, std::string a_Group) : m_DegU(a_BiDeg), m_DegV(a_BiDeg), m_Group(a_Group)
@@ -24,7 +24,7 @@ struct Patch
         for(int row=0; row<a_BiDeg+1; ++row){
             m_BBcoefs[row].resize(a_BiDeg+1);
         }
-        init_BB_coefs();
+        initBBcoefs();
     };
 
     Patch(int a_DegU, int a_DegV) : m_DegU(a_DegU), m_DegV(a_DegV)
@@ -33,7 +33,7 @@ struct Patch
         for(int row=0; row<a_DegU+1; ++row){
             m_BBcoefs[row].resize(a_DegV+1);
         }
-        init_BB_coefs();
+        initBBcoefs();
     };
 
     Patch(int a_DegU, int a_DegV, std::string a_Group) : m_DegU(a_DegU), m_DegV(a_DegV), m_Group(a_Group)
@@ -42,7 +42,7 @@ struct Patch
         for(int row=0; row<a_DegU+1; ++row){
             m_BBcoefs[row].resize(a_DegV+1);
         }
-        init_BB_coefs();
+        initBBcoefs();
     };
 
     void operator=(const Patch a_Other)
@@ -67,7 +67,7 @@ struct Patch
     }
 
     // Init each cpts as {0,0,0}
-    void init_BB_coefs()
+    void initBBcoefs()
     {
         for(int i=0; i<m_BBcoefs.size(); i++)
         {
@@ -76,6 +76,53 @@ struct Patch
                 m_BBcoefs[i][j] = {0,0,0};
             }
         }
+    }
+
+    void degRaise()
+    {
+        int t_UR = m_DegU + 1;
+        int t_VR = m_DegV + 1;
+
+        std::vector<std::vector<Point>> t_BBUR; // u-direction deg raised BB-coef
+        std::vector<std::vector<Point>> t_BBR; // both-direction deg raised BB-coef
+
+        // init t_BBUR & t_BBR
+        t_BBUR.resize(t_UR+1);
+        t_BBR.resize(t_UR+1);
+        for(int i=0; i<t_UR+1; ++i)
+        {
+            t_BBUR[i].resize(m_DegV+1);
+            t_BBR[i].resize(t_VR+1);
+        }
+
+        // deg raise u direction
+        for(int i=0; i<=t_UR; i++)
+        {
+            int k = t_UR - i;
+            for(int j=0; j<=m_DegV; j++)
+            {
+                int a = (i-1 < 0) ? 0 : i-1;
+                int b = (i > m_DegU) ? i-1 : i;
+                t_BBUR[i][j] = (i*m_BBcoefs[a][j] + k*m_BBcoefs[b][j]) / t_UR;
+            }
+        }
+
+        // deg raise v direction
+        for(int j=0; j<=t_VR; j++)
+        {
+            int k = t_VR - j;
+            for(int i=0; i<=t_UR; i++)
+            {
+                int a = (j-1 < 0) ? 0 : j-1;
+                int b = (j > t_UR) ? j-1 : j;
+                t_BBR[i][j] = (j*t_BBUR[i][a] + k*t_BBUR[i][b]) / t_VR;
+            }
+        }
+
+        // update member variables
+        m_BBcoefs = t_BBR;
+        m_DegU = t_UR;
+        m_DegV = t_VR;
     }
 
     // Please find patch type in
