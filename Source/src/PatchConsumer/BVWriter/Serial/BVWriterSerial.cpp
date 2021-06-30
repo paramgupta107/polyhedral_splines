@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <iomanip>
 #include <thread>
+#include <cmath>
 
 #include "BVWriterSerial.hpp"
 
@@ -63,7 +64,7 @@ void BVWriterSerial::Consume(const Patch a_Patch)
  *  See https://www.cise.ufl.edu/research/SurfLab/bview/
  *  for information on the file format.
  */
-void BVWriterSerial::WritePatch(const Patch a_Patch)
+void BVWriterSerial::WritePatch(Patch a_Patch)
 {
     // Check that the patch has the correct
     // number of control points for its degree
@@ -72,8 +73,6 @@ void BVWriterSerial::WritePatch(const Patch a_Patch)
         std::cout << "Patch is not valid,  write is aborting!\n";
         return;
     }
-
-
 
     // Patch Group
     m_OutFile << a_Patch.m_Group << std::endl;
@@ -87,9 +86,18 @@ void BVWriterSerial::WritePatch(const Patch a_Patch)
         std::to_string(a_Patch.m_DegU) << " " << std::to_string(a_Patch.m_DegV) << std::endl;
 
     // Control points
-    for(int row=0; row<a_Patch.m_DegU+1; ++row){
-        for(int column=0; column<a_Patch.m_DegV+1; ++column){
-            m_OutFile << a_Patch.m_BBcoefs[row][column] << std::endl;
+    double fd = pow(10,t_NumOfFloatingDigit);
+    std::vector<double> t_BB = {0, 0, 0};
+    for(int row=0; row<a_Patch.m_DegU+1; ++row)
+    {
+        for(int column=0; column<a_Patch.m_DegV+1; ++column)
+        {
+            for(int i=0; i<t_BB.size(); i++)
+            {
+                t_BB[i] = round(a_Patch.m_BBcoefs[row][column][i] * fd);
+                t_BB[i] = (long int)(t_BB[i])%2==0 ? t_BB[i]/fd : (t_BB[i]+1)/fd;
+            }
+            m_OutFile << t_BB[0] << " " << t_BB[1] << " " << t_BB[2] << std::endl;
         }
     }
 

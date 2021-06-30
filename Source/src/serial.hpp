@@ -30,7 +30,7 @@ namespace serial
 			auto t_FacePatches = t_Constructor->getPatch(*t_FaceIt);
 			for (auto t_Patch : t_FacePatches)
 			{
-				if(a_IsDegRaise && (t_Patch.m_DegU<3 || t_Patch.m_DegV<3))
+				if(a_IsDegRaise)
 				{
 					t_Patch.degRaise();
 				}
@@ -52,7 +52,7 @@ namespace serial
 			auto t_VertPatches = t_Constructor->getPatch(*t_VertIt);
 			for (auto t_Patch : t_VertPatches)
 			{
-				if(a_IsDegRaise && (t_Patch.m_DegU<3 || t_Patch.m_DegV<3))
+				if(a_IsDegRaise)
 				{
 					t_Patch.degRaise();
 				}

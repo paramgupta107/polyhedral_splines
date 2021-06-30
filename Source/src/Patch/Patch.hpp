@@ -80,47 +80,72 @@ struct Patch
 
     void degRaise()
     {
-        int t_UR = m_DegU + 1;
-        int t_VR = m_DegV + 1;
+        bool t_IsRaiseU = m_DegU < 3 ? true : false;
+        bool t_IsRaiseV = m_DegV < 3 ? true : false;
 
-        std::vector<std::vector<Point>> t_BBUR; // u-direction deg raised BB-coef
-        std::vector<std::vector<Point>> t_BBR; // both-direction deg raised BB-coef
-
-        // init t_BBUR & t_BBR
-        t_BBUR.resize(t_UR+1);
-        t_BBR.resize(t_UR+1);
-        for(int i=0; i<t_UR+1; ++i)
+        // This patch doesn't need deg raise
+        if(!t_IsRaiseU && !t_IsRaiseV)
         {
-            t_BBUR[i].resize(m_DegV+1);
-            t_BBR[i].resize(t_VR+1);
+            return;
         }
 
+        int t_UR = t_IsRaiseU ? m_DegU+1 : m_DegU;
+        int t_VR = t_IsRaiseV ? m_DegV+1 : m_DegV;
+
+        std::vector<std::vector<Point>> t_BBUR(t_UR+1, std::vector<Point>(m_DegV+1, {0,0,0})); // u-direction deg raised BB-coef
+
         // deg raise u direction
-        for(int i=0; i<=t_UR; i++)
+        if(t_IsRaiseU)
         {
-            int k = t_UR - i;
-            for(int j=0; j<=m_DegV; j++)
+            for(int i=0; i<=t_UR; i++)
             {
-                int a = (i-1 < 0) ? 0 : i-1;
-                int b = (i > m_DegU) ? i-1 : i;
-                t_BBUR[i][j] = (i*m_BBcoefs[a][j] + k*m_BBcoefs[b][j]) / t_UR;
+                int k = t_UR - i;
+                for(int j=0; j<=m_DegV; j++)
+                {
+                    int a = (i-1 < 0) ? 0 : i-1;
+                    int b = (i > m_DegU) ? i-1 : i;
+                    t_BBUR[i][j] = (i*m_BBcoefs[a][j] + k*m_BBcoefs[b][j]) / t_UR;
+                }
+            }
+            if(!t_IsRaiseV)
+            {
+                m_BBcoefs = t_BBUR;
             }
         }
 
         // deg raise v direction
-        for(int j=0; j<=t_VR; j++)
+        if(t_IsRaiseV && !t_IsRaiseU)
         {
-            int k = t_VR - j;
-            for(int i=0; i<=t_UR; i++)
+            std::vector<std::vector<Point>> t_BBVR(m_DegU+1, std::vector<Point>(t_VR+1, {0,0,0})); // v-direction deg raised BB-coef
+            for(int j=0; j<=t_VR; j++)
             {
-                int a = (j-1 < 0) ? 0 : j-1;
-                int b = (j > t_UR) ? j-1 : j;
-                t_BBR[i][j] = (j*t_BBUR[i][a] + k*t_BBUR[i][b]) / t_VR;
+                int k = t_VR - j;
+                for(int i=0; i<=m_DegU; i++)
+                {
+                    int a = (j-1 < 0) ? 0 : j-1;
+                    int b = (j > m_DegU) ? j-1 : j;
+                    t_BBVR[i][j] = (j*m_BBcoefs[i][a] + k*m_BBcoefs[i][b]) / t_VR;
+                }
             }
+            m_BBcoefs = t_BBVR;
+        }
+        else  // deg raise u & v direction
+        {
+            std::vector<std::vector<Point>> t_BBR(t_UR+1, std::vector<Point>(t_VR+1, {0,0,0})); // both-direction deg raised BB-coef
+            for(int j=0; j<=t_VR; j++)
+            {
+                int k = t_VR - j;
+                for(int i=0; i<=t_UR; i++)
+                {
+                    int a = (j-1 < 0) ? 0 : j-1;
+                    int b = (j > t_UR) ? j-1 : j;
+                    t_BBR[i][j] = (j*t_BBUR[i][a] + k*t_BBUR[i][b]) / t_VR;
+                }
+            }
+            m_BBcoefs = t_BBR;
         }
 
-        // update member variables
-        m_BBcoefs = t_BBR;
+        // update member deg
         m_DegU = t_UR;
         m_DegV = t_VR;
     }
