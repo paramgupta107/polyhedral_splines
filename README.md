@@ -45,7 +45,7 @@ Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/
 ./semi_structured_spline /path/to/filename.obj
 ```
 
-User can add option `-d` or `--DEGREE_RAISE` to raise patches with degree 2x2 to 3x3 (or 2x3 to 3x4 or 3x2 to 4x3)
+User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
 ```shell
 ./semi_structured_spline -d /path/to/filename.obj
 ```
