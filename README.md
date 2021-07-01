@@ -22,8 +22,8 @@ g++ (9.3.0) & Apple clang++ (11.0)
 # - Building #
 
 ```shell
-git clone https://bitbucket.org/surflab/semi_structured_spline/src/toms/
-cd ~/semi_structured_spline
+git clone https://bitbucket.org/surflab/low_degree_semi_structured_spline.git
+cd ~/low_degree_semi_structured_spline
 mkdir build
 cd build
 cmake ../Source
@@ -42,12 +42,12 @@ Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/
 ## Execution
 
 ```shell
-./semi_structured_spline /path/to/filename.obj
+./SemiStructuredSpline /path/to/filename.obj
 ```
-
+Note: test .obj files are in `/testfile`.
 User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
 ```shell
-./semi_structured_spline -d /path/to/filename.obj
+./SemiStructuredSpline -d /path/to/filename.obj
 ```
 
 ## Test multiple object files
