@@ -45,6 +45,7 @@ Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/
 ./SemiStructuredSpline /path/to/filename.obj
 ```
 Note: test .obj files are in `/testfile`.
+
 User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
 ```shell
 ./SemiStructuredSpline -d /path/to/filename.obj
