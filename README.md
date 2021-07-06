@@ -23,7 +23,7 @@ g++ (9.3.0) & Apple clang++ (11.0)
 
 ```shell
 git clone https://bitbucket.org/surflab/low_degree_semi_structured_spline.git
-cd ~/low_degree_semi_structured_spline
+cd low_degree_semi_structured_spline
 mkdir build
 cd build
 cmake ../Source
