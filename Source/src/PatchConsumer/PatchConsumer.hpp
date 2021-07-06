@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 
 #ifndef PATCH_CONSUMER_HPP
 #define PATCH_CONSUMER_HPP

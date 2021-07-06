@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef REGULARPATCHCONSTRUCTOR_HPP
 #define REGULARPATCHCONSTRUCTOR_HPP
 

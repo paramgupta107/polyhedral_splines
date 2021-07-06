@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include <Eigen/Dense>
 #include "ExtraordinaryPatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"

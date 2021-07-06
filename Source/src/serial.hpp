@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 
 #ifndef SERIAL_HPP
 #define SERIAL_HPP

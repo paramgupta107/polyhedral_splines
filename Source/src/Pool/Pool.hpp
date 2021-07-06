@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef PATCHPOOL_HPP
 #define PATCHPOOL_HPP
 

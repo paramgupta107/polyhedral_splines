@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 //  C++ std library includes
 #include <iostream>
 #include <string>

@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include "PolarPatchConstructor.hpp"
 #include <Eigen/Dense>
 #include "../Helper/HalfedgeOperation.hpp"

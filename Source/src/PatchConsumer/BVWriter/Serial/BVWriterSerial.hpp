@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef BVWRITERSERIAL_HPP
 #define BVWRITERSERIAL_HPP
 

@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef TWOTRIANGLESTWOQUADSPATCHCONSTRUCTOR_HPP
 #define TWOTRIANGLESTWOQUADSPATCHCONSTRUCTOR_HPP
 

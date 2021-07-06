@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include <assert.h>
 #include <iomanip>
 #include <thread>

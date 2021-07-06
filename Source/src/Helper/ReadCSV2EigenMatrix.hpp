@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef READCSV2EIGENMATRIX_HPP
 #define READCSV2EIGENMATRIX_HPP
 

@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include "HalfedgeOperation.hpp"
 #include "Helper.hpp"
 

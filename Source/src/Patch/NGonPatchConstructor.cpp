@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include "NGonPatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"
 #include "../Helper/Helper.hpp"

@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef NGONPATCHCONSTRUCTOR_HPP
 #define NGONPATCHCONSTRUCTOR_HPP
 

@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef T0PATCHCONSTRUCTOR_HPP
 #define T0PATCHCONSTRUCTOR_HPP
 

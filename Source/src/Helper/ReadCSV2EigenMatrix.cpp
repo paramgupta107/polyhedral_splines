@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #include "ReadCSV2EigenMatrix.hpp"
 #include <iostream>
 #include <fstream>

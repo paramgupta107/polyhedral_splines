@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+
 #ifndef POLARPATCHCONSTRUCTOR_HPP
 #define POLARPATCHCONSTRUCTOR_HPP
 
