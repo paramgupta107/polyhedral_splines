@@ -8,6 +8,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 # Force make to stop after first error
 add_definitions(
     -Wfatal-errors # stop after first error
+    -w
 )
 
 ################################################################################
@@ -23,7 +24,7 @@ ExternalProject_Add(
 	PREFIX ${OPENMESH_ROOT}
 	GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
 	GIT_TAG db8c0608830ae7324b2b2e1d91e4db565b2d3eae
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_CXX_FLAGS="-w"
     BUILD_COMMAND make -j6
     INSTALL_COMMAND make install -j6
 )
@@ -50,7 +51,7 @@ add_executable(SemiStructuredSpline src/main.cpp ${SOURCES})
 
 
 ### Link OpenMesh ###
-include_directories(${OPENMESH_ROOT}/include)
+include_directories(SYSTEM ${OPENMESH_ROOT}/include)
 
 if(APPLE)
     set(LIB_EXTENSION dylib)
@@ -66,7 +67,7 @@ target_link_libraries(
 
 
 ### Link Eigen ###
-include_directories(${EIGEN_ROOT}/include/eigen3)
+include_directories(SYSTEM ${EIGEN_ROOT}/include/eigen3)
 
 
 
