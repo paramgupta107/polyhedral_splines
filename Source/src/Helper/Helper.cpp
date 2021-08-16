@@ -1,4 +1,4 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #include "Helper.hpp"
 #include "HalfedgeOperation.hpp"
@@ -146,7 +146,7 @@ bool is_pentagon(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle)
 bool is_hexagon(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle)
 {
     const int t_NumOfVertsForHexagon = 6;
-    return (get_num_of_verts_for_face(a_Mesh, a_FaceHandle)) ? true : false;
+    return (get_num_of_verts_for_face(a_Mesh, a_FaceHandle)==t_NumOfVertsForHexagon) ? true : false;
 }
 
 std::vector<FaceHandle> init_neighbor_faces(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle)
