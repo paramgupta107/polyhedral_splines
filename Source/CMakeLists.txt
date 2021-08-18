@@ -69,20 +69,6 @@ target_link_libraries(
 ### Link Eigen ###
 include_directories(SYSTEM ${EIGEN_ROOT}/include/eigen3)
 
-
-
 # Eigen & OpenMesh need to be built before main program
 add_dependencies(SemiStructuredSpline Eigen OpenMesh)
 
-
-
-
-
-
-
-# Copy testAllFiles.sh to build folder
-add_custom_command(
-    TARGET SemiStructuredSpline
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/testAllFiles.sh ${CMAKE_SOURCE_DIR}/../build
-)

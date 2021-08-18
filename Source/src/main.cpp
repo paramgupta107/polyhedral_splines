@@ -3,7 +3,6 @@
 //  C++ std library includes
 #include <iostream>
 #include <string>
-#include <filesystem>
 
 //  Open Mesh includes
 #include <OpenMesh/Core/IO/MeshIO.hh>
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
     OpenMesh::IO::read_mesh(t_Mesh, t_InputFile);
 
     // Init output .bv file
-    const std::string t_FileName = std::filesystem::path(t_InputFile).stem().string() + ".bv";
+    const std::string t_FileName = "output.bv";
     PatchConsumer* t_BVWriterSerial= new BVWriterSerial(t_FileName);
 
     // Generate BB patches and write BB coef. to .bv file
