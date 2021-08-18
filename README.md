@@ -10,7 +10,7 @@ Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
 [OpenMesh](<https://www.openmesh.org/>) (8.1)
 
 ### Compilers
-g++ (9.3.0) & Apple clang++ (11.0)
+g++ (6.4.0) & Apple clang++ (11.0)
 
 
 **Note:**
