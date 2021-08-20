@@ -1,22 +1,27 @@
 # - Environment Setting
 
-### Operating systems
+### Recommended Operating Systems
 Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
 
 ### Dependencies
 
-[Cmake](https://cmake.org/) (3.16.3)
+[Cmake](https://cmake.org/) (3.9)
 [Eigen](<https://eigen.tuxfamily.org/>) (3.3)
 [OpenMesh](<https://www.openmesh.org/>) (8.1)
 
-### Compilers
-g++ (6.4.0) & Apple clang++ (11.0)
-
+### Tested Environments
+macOS: Apple clang++-11
+ubuntu 18.04: g++-6 g++-7 g++-8
+ubuntu 20.04: g++-9 g++-10 g++-11
+Debian 9: g++-6
+Debian 10: g++-7 g++-8
+Debian 11: g++-9 g++-10 g++11
+CentOS 8: g++-8
 
 **Note:**
 
 * CMake will automatically download and install Eigen and OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
-* Succesfully tested version are listed in parentheses. The program should be compatible to equivalent or higher versions with little or no modification.
+* The program should be compatible to equivalent or higher versions with little or no modification.
 
 
 # - Building #
@@ -50,16 +55,6 @@ User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches 
 ```shell
 ./SemiStructuredSpline -d /path/to/filename.obj
 ```
-
-## Test multiple object files
-Run the bash file to automatically generate .bv file for all .obj files in `/testfile` folder
-
-```shell
-cd build
-./testAllFiles.sh
-```
-
-**Note:** makefile will copy `testAllFiles.sh` into `/build` after compilation. And the output .bv files will be stored in auto generated `/output`
 
 ## View .bv file
 Users can display .bv files by using either the online or the desktop version of [BView](https://www.cise.ufl.edu/research/SurfLab/bview/).

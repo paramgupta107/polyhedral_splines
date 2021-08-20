@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.2)
+cmake_minimum_required (VERSION 3.9)
 project (SemiStructuredSpline)
 
 # Required by OpenMesh
@@ -71,4 +71,3 @@ include_directories(SYSTEM ${EIGEN_ROOT}/include/eigen3)
 
 # Eigen & OpenMesh need to be built before main program
 add_dependencies(SemiStructuredSpline Eigen OpenMesh)
-
