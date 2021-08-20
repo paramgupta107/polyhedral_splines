@@ -10,12 +10,18 @@ Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
 [OpenMesh](<https://www.openmesh.org/>) (8.1)
 
 ### Tested Environments
-macOS: Apple clang++-11 /
-ubuntu 18.04: g++-6 g++-7 g++-8 /
-ubuntu 20.04: g++-9 g++-10 g++-11 /
-Debian 9: g++-6 /
-Debian 10: g++-7 g++-8 /
-Debian 11: g++-9 g++-10 g++11 /
+macOS: Apple clang++-11
+
+ubuntu 18.04: g++-6 g++-7 g++-8
+
+ubuntu 20.04: g++-9 g++-10 g++-11
+
+Debian 9: g++-6
+
+Debian 10: g++-7 g++-8
+
+Debian 11: g++-9 g++-10 g++11
+
 CentOS 8: g++-8
 
 **Note:**
