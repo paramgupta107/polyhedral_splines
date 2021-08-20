@@ -5,7 +5,7 @@ Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
 
 ### Dependencies
 
-[Cmake](https://cmake.org/) (3.9)
+[CMake](https://cmake.org/) (>=3.9)
 [Eigen](<https://eigen.tuxfamily.org/>) (3.3)
 [OpenMesh](<https://www.openmesh.org/>) (8.1)
 
