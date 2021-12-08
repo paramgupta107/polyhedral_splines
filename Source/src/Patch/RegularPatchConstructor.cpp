@@ -1,33 +1,7 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #include "RegularPatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"
-#include "../Helper/Helper.hpp"
-
-/*
- * Get the mask for generating Bi3 Patch
- */
-EGMat9x9d RegularPatchConstructor::getMask()
-{
-    EGMat9x9d t_Mask;
-    t_Mask << \
-    1, 1, 0, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 0, 1, 1, 0, 0, 0,
-    0, 0, 0, 1, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 1, 0, 0, 0,
-    0, 0, 0, 1, 1, 0, 1, 1, 0,
-    0, 0, 0, 0, 1, 0, 0, 1, 0,
-    0, 0, 0, 0, 1, 1, 0, 1, 1;
-
-    //normalize mask
-    auto t_SumOfEachRow = t_Mask.rowwise().sum();
-    t_Mask = t_Mask.cwiseProduct(t_SumOfEachRow.cwiseInverse().replicate<1,9>());
-
-    return t_Mask;
-}
-
 
 /*
  * Check if the current face (facehandle) and its neighbors match the Regular structure
@@ -76,23 +50,23 @@ std::vector<Patch> RegularPatchConstructor::getPatch(const VertexHandle& a_VertH
  */
 Patch RegularPatchConstructor::getPatch(const std::vector<VertexHandle>& a_NBVertexHandles)
 {
-    auto t_BBcoefs = getEGVertPatch(a_NBVertexHandles);
+    Matrix t_BBcoefs = getPatchMat(a_NBVertexHandles);
 
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return Helper::EGPoints_to_patch(t_PatchDegU, t_PatchDegV, "Group 0 Regular", t_BBcoefs);
+    return Helper::points_mat_to_patch(t_PatchDegU, t_PatchDegV, "Group 0 Regular", t_BBcoefs);
 }
 
 /*
- * Given neighbor verts, multiply it with mask to generate patch in Eigen matrix form.
+ * Given neighbor verts, multiply it with mask to generate patch in matrix form.
  */
-EGVert9d RegularPatchConstructor::getEGVertPatch(const std::vector<VertexHandle>& a_NBVertexHandles)
+Matrix RegularPatchConstructor::getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles)
 {
-    //convert NeighborVerts to Eigen matrix type
-    auto t_EGNBVerts = Helper::verthandles_to_EGPoints(m_Mesh, a_NBVertexHandles);
+    //convert NeighborVerts to matrix type
+    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, a_NBVertexHandles);
 
     // getPatch
-    auto t_BBcoefs = m_Mask * t_EGNBVerts;
+    auto t_BBcoefs = m_Mask * t_NBVertsMat;
 
     return t_BBcoefs;
 }

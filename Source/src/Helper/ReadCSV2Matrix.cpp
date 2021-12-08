@@ -1,11 +1,10 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#include "ReadCSV2EigenMatrix.hpp"
+#include "ReadCSV2Matrix.hpp"
 #include <iostream>
 #include <fstream>
-#include <Eigen/Dense>
 
-Eigen::MatrixXd read_csv_as_eigen_matrix(const std::string a_File, const int a_Rows, const int a_Cols)
+Matrix read_csv_as_matrix(const std::string a_File, const int a_Rows, const int a_Cols)
 {
     std::ifstream t_File(a_File);
     std::string t_Line;
@@ -13,7 +12,7 @@ Eigen::MatrixXd read_csv_as_eigen_matrix(const std::string a_File, const int a_R
     int t_Row = 0;
     int t_Col = 0;
 
-    Eigen::MatrixXd t_Matrix = Eigen::MatrixXd(a_Rows, a_Cols);
+    Matrix t_Matrix(a_Rows, a_Cols);
 
     if (t_File.is_open())
     {

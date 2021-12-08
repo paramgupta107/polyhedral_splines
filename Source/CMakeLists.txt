@@ -29,17 +29,6 @@ ExternalProject_Add(
     INSTALL_COMMAND make install -j6
 )
 
-# Eigen
-set(EIGEN_ROOT ${CMAKE_SOURCE_DIR}/External/Eigen)
-
-ExternalProject_Add(
-    Eigen
-	PREFIX ${EIGEN_ROOT}
-	GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-	GIT_TAG 53a7864c48a2b2fc226c69e9184d7cc8e6b36b6d
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-)
-
 ################################################################################
 
 # Needed by macOS (@rpath issue)
@@ -66,8 +55,5 @@ target_link_libraries(
 )
 
 
-### Link Eigen ###
-include_directories(SYSTEM ${EIGEN_ROOT}/include/eigen3)
-
-# Eigen & OpenMesh need to be built before main program
-add_dependencies(SemiStructuredSpline Eigen OpenMesh)
+# OpenMesh need to be built before main program
+add_dependencies(SemiStructuredSpline OpenMesh)

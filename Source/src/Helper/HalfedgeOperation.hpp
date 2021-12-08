@@ -1,9 +1,8 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #ifndef HALFEDGEOPERATION_HPP
 #define HALFEDGEOPERATION_HPP
 
-#include <Eigen/Dense>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;

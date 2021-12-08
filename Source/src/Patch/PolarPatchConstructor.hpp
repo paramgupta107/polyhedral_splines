@@ -1,18 +1,18 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #ifndef POLARPATCHCONSTRUCTOR_HPP
 #define POLARPATCHCONSTRUCTOR_HPP
 
-#include <Eigen/Dense>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
+#include "../Helper/Helper.hpp"
 
-typedef Eigen::Matrix<double, 36, 4> EGMat36x4d;
-typedef Eigen::Matrix<double, 48, 5> EGMat48x5d;
-typedef Eigen::Matrix<double, 60, 6> EGMat60x6d;
-typedef Eigen::Matrix<double, 72, 7> EGMat72x7d;
-typedef Eigen::Matrix<double, 84, 8> EGMat84x8d;
-typedef Eigen::Matrix<double, 96, 9> EGMat96x9d;
+typedef Matrix Mat36x4d;
+typedef Matrix Mat48x5d;
+typedef Matrix Mat60x6d;
+typedef Matrix Mat72x7d;
+typedef Matrix Mat84x8d;
+typedef Matrix Mat96x9d;
 
 class PolarPatchConstructor : public PatchConstructor
 {
@@ -31,20 +31,20 @@ public:
 
 private:
     const MeshType& m_Mesh;
-    const EGMat36x4d m_MaskSct3;
-    const EGMat48x5d m_MaskSct4;
-    const EGMat60x6d m_MaskSct5;
-    const EGMat72x7d m_MaskSct6;
-    const EGMat84x8d m_MaskSct7;
-    const EGMat96x9d m_MaskSct8;
+    const Mat36x4d m_MaskSct3;
+    const Mat48x5d m_MaskSct4;
+    const Mat60x6d m_MaskSct5;
+    const Mat72x7d m_MaskSct6;
+    const Mat84x8d m_MaskSct7;
+    const Mat96x9d m_MaskSct8;
     int m_NumOfSct = 0;
 
-    EGMat36x4d getMaskSct3();
-    EGMat48x5d getMaskSct4();
-    EGMat60x6d getMaskSct5();
-    EGMat72x7d getMaskSct6();
-    EGMat84x8d getMaskSct7();
-    EGMat96x9d getMaskSct8();
+    Mat36x4d getMaskSct3();
+    Mat48x5d getMaskSct4();
+    Mat60x6d getMaskSct5();
+    Mat72x7d getMaskSct6();
+    Mat84x8d getMaskSct7();
+    Mat96x9d getMaskSct8();
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
 };
 

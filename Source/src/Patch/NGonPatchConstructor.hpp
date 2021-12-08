@@ -1,17 +1,17 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #ifndef NGONPATCHCONSTRUCTOR_HPP
 #define NGONPATCHCONSTRUCTOR_HPP
 
-#include <Eigen/Dense>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
+#include "../Helper/Helper.hpp"
 
-typedef Eigen::Matrix<double, 48, 12> EGMat48x12d;
-typedef Eigen::Matrix<double, 80, 20> EGMat80x20d;
-typedef Eigen::Matrix<double, 384, 24> EGMat384x24d;
-typedef Eigen::Matrix<double, 448, 28> EGMat448x28d;
-typedef Eigen::Matrix<double, 512, 32> EGMat512x32d;
+typedef Matrix Mat48x12d;
+typedef Matrix Mat80x20d;
+typedef Matrix Mat384x24d;
+typedef Matrix Mat448x28d;
+typedef Matrix Mat512x32d;
 
 class NGonPatchConstructor : public PatchConstructor
 {
@@ -29,18 +29,18 @@ public:
 
 private:
     const MeshType& m_Mesh;
-    const EGMat48x12d m_MaskSct3;
-    const EGMat80x20d m_MaskSct5;
-    const EGMat384x24d m_MaskSct6;
-    const EGMat448x28d m_MaskSct7;
-    const EGMat512x32d m_MaskSct8;
+    const Mat48x12d m_MaskSct3;
+    const Mat80x20d m_MaskSct5;
+    const Mat384x24d m_MaskSct6;
+    const Mat448x28d m_MaskSct7;
+    const Mat512x32d m_MaskSct8;
     int m_FaceValence;
 
-    EGMat48x12d getMaskSct3();
-    EGMat80x20d getMaskSct5();
-    EGMat384x24d getMaskSct6();
-    EGMat448x28d getMaskSct7();
-    EGMat512x32d getMaskSct8();
+    Mat48x12d getMaskSct3();
+    Mat80x20d getMaskSct5();
+    Mat384x24d getMaskSct6();
+    Mat448x28d getMaskSct7();
+    Mat512x32d getMaskSct8();
 
     std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
 };

@@ -6,7 +6,6 @@ Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
 ### Dependencies
 
 [CMake](https://cmake.org/) (>=3.9)
-[Eigen](<https://eigen.tuxfamily.org/>) (3.3)
 [OpenMesh](<https://www.openmesh.org/>) (8.1)
 
 ### Tested Environments
@@ -26,7 +25,7 @@ CentOS 8: g++-8
 
 **Note:**
 
-* CMake will automatically download and install Eigen and OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
+* CMake will automatically download and install OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
 * The program should be compatible to equivalent or higher versions with little or no modification.
 
 

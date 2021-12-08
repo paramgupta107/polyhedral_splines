@@ -1,38 +1,37 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #include "NGonPatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"
-#include "../Helper/Helper.hpp"
-#include "../Helper/ReadCSV2EigenMatrix.hpp"
+#include "../Helper/ReadCSV2Matrix.hpp"
 
-EGMat48x12d NGonPatchConstructor::getMaskSct3()
+Mat48x12d NGonPatchConstructor::getMaskSct3()
 {
     std::string t_MaskCSVFilePathSct3 = "../Source/src/Patch/Table/ngonSct3.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct3, 48, 12);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct3, 48, 12);
 }
 
-EGMat80x20d NGonPatchConstructor::getMaskSct5()
+Mat80x20d NGonPatchConstructor::getMaskSct5()
 {
     std::string t_MaskCSVFilePathSct5 = "../Source/src/Patch/Table/ngonSct5.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct5, 80, 20);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct5, 80, 20);
 }
 
-EGMat384x24d NGonPatchConstructor::getMaskSct6()
+Mat384x24d NGonPatchConstructor::getMaskSct6()
 {
     std::string t_MaskCSVFilePathSct6 = "../Source/src/Patch/Table/ngonSct6.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct6, 384, 24);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct6, 384, 24);
 }
 
-EGMat448x28d NGonPatchConstructor::getMaskSct7()
+Mat448x28d NGonPatchConstructor::getMaskSct7()
 {
     std::string t_MaskCSVFilePathSct7 = "../Source/src/Patch/Table/ngonSct7.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct7, 448, 28);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct7, 448, 28);
 }
 
-EGMat512x32d NGonPatchConstructor::getMaskSct8()
+Mat512x32d NGonPatchConstructor::getMaskSct8()
 {
     std::string t_MaskCSVFilePathSct8 = "../Source/src/Patch/Table/ngonSct8.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct8, 512, 32);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 32);
 }
 
 bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
@@ -69,27 +68,27 @@ std::vector<Patch> NGonPatchConstructor::getPatch(const FaceHandle& a_FaceHandle
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle);
 
-    // Convert Neighbor Verts to Eigen matrix type
-    auto t_EGNBVerts = Helper::verthandles_to_EGPoints(m_Mesh, t_NBVerts);
+    // Convert Neighbor Verts to matrix type
+    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
 
     // Generate patch
-    EGPointNd t_BBcoefs;
+    Matrix t_BBcoefs;
     switch(m_FaceValence)
     {
         case 3:
-            t_BBcoefs = m_MaskSct3 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct3 * t_NBVertsMat;
             break;
         case 5:
-            t_BBcoefs = m_MaskSct5 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct5 * t_NBVertsMat;
             break;
         case 6:
-            t_BBcoefs = m_MaskSct6 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct6 * t_NBVertsMat;
             break;
         case 7:
-            t_BBcoefs = m_MaskSct7 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct7 * t_NBVertsMat;
             break;
         case 8:
-            t_BBcoefs = m_MaskSct8 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct8 * t_NBVertsMat;
             break;
     }
 
@@ -100,7 +99,7 @@ std::vector<Patch> NGonPatchConstructor::getPatch(const FaceHandle& a_FaceHandle
         a_NumOfPatch = a_NumOfPatch * 4;
     }
 
-    return Helper::EGPoints_to_patches(a_NumOfPatch, "Group 8 nGon", t_BBcoefs);
+    return Helper::points_mat_to_patches(a_NumOfPatch, "Group 8 nGon", t_BBcoefs);
 }
 
 

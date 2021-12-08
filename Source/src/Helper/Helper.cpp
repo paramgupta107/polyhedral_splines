@@ -247,53 +247,46 @@ int num_of_triangles(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandl
 
 // Type conversion
 
-EGPoint verthandle_to_EGPoint(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
+Vec3d verthandles_to_point_vec(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
 {
-    EGPoint t_EGPoint;
-    Point t_Point = {0, 0, 0};
+    Vec3d t_PointVec = {0, 0, 0};
     if(a_VertHandle.is_valid())
     {
-        t_Point = a_Mesh.point(a_VertHandle);
+        for(int i=0; i<3; i++)
+        {
+            t_PointVec[i] = a_Mesh.point(a_VertHandle)[i];
+        }
     }
-    for(int i=0; i<t_Point.size(); i++)
-    {
-        t_EGPoint[i] = t_Point[i];
-    }
-    return t_EGPoint;
+    return t_PointVec;
 }
 
-EGPointNd verthandles_to_EGPoints(const MeshType& a_Mesh, const std::vector<VertexHandle>& a_VertHandle)
+Matrix verthandles_to_points_mat(const MeshType& a_Mesh, const std::vector<VertexHandle>& a_VertHandle)
 {
     int t_NumOfVerts = a_VertHandle.size();
-    Eigen::MatrixXd t_EGPoints(t_NumOfVerts, 3);
+    auto t_PointMat = Matrix(t_NumOfVerts, 3);
 
     for(int i=0; i<t_NumOfVerts; i++)
     {
-        t_EGPoints.row(i) =  verthandle_to_EGPoint(a_Mesh, a_VertHandle[i]);
+        t_PointMat(i) = verthandles_to_point_vec(a_Mesh, a_VertHandle[i]);
     }
-    return t_EGPoints;
+    return t_PointMat;
 }
-
-
 
 
 // Patch
 
-/*
- * Save Eigen points into patch
- */
-Patch EGPoints_to_patch(const EGPointNd& a_EGPoints)
+Patch points_mat_to_patch(const Matrix& a_PointMat)
 {
-    int t_PointsPerCol = pow(a_EGPoints.rows(), 0.5);
+    int t_PointsPerCol = pow(a_PointMat.getRows(), 0.5);
     Patch t_Patch(t_PointsPerCol-1);
-    for(int i=0; i<a_EGPoints.rows(); i++)
+    for(int i=0; i<a_PointMat.getRows(); i++)
     {
-        t_Patch.m_BBcoefs[i/t_PointsPerCol][i%t_PointsPerCol] = {a_EGPoints(i,0),a_EGPoints(i,1),a_EGPoints(i,2)};
+        t_Patch.m_BBcoefs[i/t_PointsPerCol][i%t_PointsPerCol] = {a_PointMat(i,0),a_PointMat(i,1),a_PointMat(i,2)};
     }
     return t_Patch;
 }
 
-Patch EGPoints_to_patch(const int a_PatchDegU, const int a_PatchDegV, const EGPointNd& a_EGPoints)
+Patch points_mat_to_patch(const int a_PatchDegU, const int a_PatchDegV, const Matrix& a_PointMat)
 {
     Patch t_Patch(a_PatchDegU, a_PatchDegV);
     for(int i=0; i<a_PatchDegU+1; i++)
@@ -301,13 +294,13 @@ Patch EGPoints_to_patch(const int a_PatchDegU, const int a_PatchDegV, const EGPo
         for(int j=0; j<a_PatchDegV+1; j++)
         {
             int t_Index = i * (a_PatchDegV+1) + j;
-            t_Patch.m_BBcoefs[i][j] = {a_EGPoints(t_Index,0),a_EGPoints(t_Index,1),a_EGPoints(t_Index,2)};
+            t_Patch.m_BBcoefs[i][j] = {a_PointMat(t_Index,0),a_PointMat(t_Index,1),a_PointMat(t_Index,2)};
         }
     }
     return t_Patch;
 }
 
-Patch EGPoints_to_patch(const int a_PatchDegU, const int a_PatchDegV, const std::string a_Group, const EGPointNd& a_EGPoints)
+Patch points_mat_to_patch(const int a_PatchDegU, const int a_PatchDegV, const std::string a_Group, const Matrix& a_PointMat)
 {
     Patch t_Patch(a_PatchDegU, a_PatchDegV, a_Group);
     for(int i=0; i<a_PatchDegU+1; i++)
@@ -315,21 +308,34 @@ Patch EGPoints_to_patch(const int a_PatchDegU, const int a_PatchDegV, const std:
         for(int j=0; j<a_PatchDegV+1; j++)
         {
             int t_Index = i * (a_PatchDegV+1) + j;
-            t_Patch.m_BBcoefs[i][j] = {a_EGPoints(t_Index,0),a_EGPoints(t_Index,1),a_EGPoints(t_Index,2)};
+            t_Patch.m_BBcoefs[i][j] = {a_PointMat(t_Index,0),a_PointMat(t_Index,1),a_PointMat(t_Index,2)};
         }
     }
     return t_Patch;
 }
 
-std::vector<Patch> EGPoints_to_patches(const int a_NumOfPatch, const std::string a_Group, const EGPointNd& a_EGPoints)
+Patch points_mat_to_patch(const int a_PatchDegU, const int a_PatchDegV, const std::string a_Group, const Matrix& a_PointMat, const int a_StartIndex)
+{
+    Patch t_Patch(a_PatchDegU, a_PatchDegV, a_Group);
+    for(int i=0; i<a_PatchDegU+1; i++)
+    {
+        for(int j=0; j<a_PatchDegV+1; j++)
+        {
+            int t_Index = a_StartIndex + i * (a_PatchDegV+1) + j;
+            t_Patch.m_BBcoefs[i][j] = {a_PointMat(t_Index,0),a_PointMat(t_Index,1),a_PointMat(t_Index,2)};
+        }
+    }
+    return t_Patch;
+}
+
+std::vector<Patch> points_mat_to_patches(const int a_NumOfPatch, const std::string a_Group, const Matrix& a_PointMat)
 {
     std::vector<Patch> t_Patches;
-    const int t_NumOfCCPtsPerPatch = a_EGPoints.rows() / a_NumOfPatch;
+    const int t_NumOfCCPtsPerPatch = a_PointMat.getRows() / a_NumOfPatch;
     const int t_Deg = sqrt(t_NumOfCCPtsPerPatch) - 1;
     for(int i=0; i<a_NumOfPatch; i++ )
     {
-        auto t_EGPatch = a_EGPoints.block(i*t_NumOfCCPtsPerPatch, 0, t_NumOfCCPtsPerPatch, a_EGPoints.cols());
-        t_Patches.push_back(EGPoints_to_patch(t_Deg, t_Deg, a_Group, t_EGPatch));
+        t_Patches.push_back(points_mat_to_patch(t_Deg, t_Deg, a_Group, a_PointMat, i*t_NumOfCCPtsPerPatch));
     }
 
     return t_Patches;
@@ -338,16 +344,15 @@ std::vector<Patch> EGPoints_to_patches(const int a_NumOfPatch, const std::string
 /*
  * For the patch whose height and width are not the same
  */
-std::vector<Patch> EGPoints_to_patches(const int a_PatchDegU, const int a_PatchDegV, const std::string a_Group, const EGPointNd& a_EGPoints)
+std::vector<Patch> points_mat_to_patches(const int a_PatchDegU, const int a_PatchDegV, const std::string a_Group, const Matrix& a_PointMat)
 {
     std::vector<Patch> t_Patches;
     const int t_NumOfCCPtsPerPatch = (a_PatchDegU + 1) * (a_PatchDegV + 1);
-    const int t_NumOfPatch = a_EGPoints.rows() / t_NumOfCCPtsPerPatch;
+    const int t_NumOfPatch = a_PointMat.getRows() / t_NumOfCCPtsPerPatch;
 
     for(int i=0; i<t_NumOfPatch; i++ )
     {
-        auto t_EGPatch = a_EGPoints.block(i*t_NumOfCCPtsPerPatch, 0, t_NumOfCCPtsPerPatch, a_EGPoints.cols());
-        t_Patches.push_back(EGPoints_to_patch(a_PatchDegU, a_PatchDegV, a_Group, t_EGPatch));
+        t_Patches.push_back(points_mat_to_patch(a_PatchDegU, a_PatchDegV, a_Group, a_PointMat, i*t_NumOfCCPtsPerPatch));
     }
 
     return t_Patches;

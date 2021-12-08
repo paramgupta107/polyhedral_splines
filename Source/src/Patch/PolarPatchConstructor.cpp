@@ -1,50 +1,46 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #include "PolarPatchConstructor.hpp"
-#include <Eigen/Dense>
 #include "../Helper/HalfedgeOperation.hpp"
-#include "../Helper/Helper.hpp"
-#include "../Helper/ReadCSV2EigenMatrix.hpp"
-
-typedef Eigen::Matrix<double, Eigen::Dynamic, 3> EGPointNd;
+#include "../Helper/ReadCSV2Matrix.hpp"
 
 /*
  * Get the mask for generating Bi3 Patch
  */
-EGMat36x4d PolarPatchConstructor::getMaskSct3()
+Mat36x4d PolarPatchConstructor::getMaskSct3()
 {
     std::string t_MaskCSVFilePathSct3 = "../Source/src/Patch/Table/polarSct3.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct3, 36, 4); //  NumOfTotalCpts = 60, NumOfVerts = 4
+    return read_csv_as_matrix(t_MaskCSVFilePathSct3, 36, 4); //  NumOfTotalCpts = 60, NumOfVerts = 4
 }
 
-EGMat48x5d PolarPatchConstructor::getMaskSct4()
+Mat48x5d PolarPatchConstructor::getMaskSct4()
 {
     std::string t_MaskCSVFilePathSct4 = "../Source/src/Patch/Table/polarSct4.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct4, 48, 5);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct4, 48, 5);
 }
 
-EGMat60x6d PolarPatchConstructor::getMaskSct5()
+Mat60x6d PolarPatchConstructor::getMaskSct5()
 {
     std::string t_MaskCSVFilePathSct5 = "../Source/src/Patch/Table/polarSct5.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct5, 60, 6);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct5, 60, 6);
 }
 
-EGMat72x7d PolarPatchConstructor::getMaskSct6()
+Mat72x7d PolarPatchConstructor::getMaskSct6()
 {
     std::string t_MaskCSVFilePathSct6 = "../Source/src/Patch/Table/polarSct6.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct6, 72, 7);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct6, 72, 7);
 }
 
-EGMat84x8d PolarPatchConstructor::getMaskSct7()
+Mat84x8d PolarPatchConstructor::getMaskSct7()
 {
     std::string t_MaskCSVFilePathSct7 = "../Source/src/Patch/Table/polarSct7.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct7, 84, 8);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct7, 84, 8);
 }
 
-EGMat96x9d PolarPatchConstructor::getMaskSct8()
+Mat96x9d PolarPatchConstructor::getMaskSct8()
 {
     std::string t_MaskCSVFilePathSct8 = "../Source/src/Patch/Table/polarSct8.csv";
-    return read_csv_as_eigen_matrix(t_MaskCSVFilePathSct8, 96, 9);
+    return read_csv_as_matrix(t_MaskCSVFilePathSct8, 96, 9);
 }
 
 
@@ -87,37 +83,36 @@ std::vector<Patch> PolarPatchConstructor::getPatch(const VertexHandle& a_VertexH
 {
     auto a_NBVertexHandles = initNeighborVerts(a_VertexHandle);
 
-    // Convert NeighborVerts to Eigen matrix type
-    auto t_EGNBVerts = Helper::verthandles_to_EGPoints(m_Mesh, a_NBVertexHandles);
+    // Convert NeighborVerts to matrix type
+    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, a_NBVertexHandles);
 
     // Get mask
-    EGPointNd t_BBcoefs;
+    Matrix t_BBcoefs;
     switch (m_NumOfSct)
     {
         case 3:
-            t_BBcoefs = m_MaskSct3 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct3 * t_NBVertsMat;
             break;
         case 4:
-            t_BBcoefs = m_MaskSct4 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct4 * t_NBVertsMat;
             break;
         case 5:
-            t_BBcoefs = m_MaskSct5 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct5 * t_NBVertsMat;
             break;
         case 6:
-            t_BBcoefs = m_MaskSct6 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct6 * t_NBVertsMat;
             break;
         case 7:
-            t_BBcoefs = m_MaskSct7 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct7 * t_NBVertsMat;
             break;
         case 8:
-            t_BBcoefs = m_MaskSct8 * t_EGNBVerts;
+            t_BBcoefs = m_MaskSct8 * t_NBVertsMat;
             break;
     }
 
-
     const int t_DegU = 3;
     const int t_DegV = 2;
-    auto t_Patches = Helper::EGPoints_to_patches(t_DegU, t_DegV, "Group 5 Polar", t_BBcoefs);
+    auto t_Patches = Helper::points_mat_to_patches(t_DegU, t_DegV, "Group 5 Polar", t_BBcoefs);
 
     return t_Patches;
 }
