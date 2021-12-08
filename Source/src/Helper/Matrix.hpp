@@ -11,12 +11,14 @@ class Matrix
 public:
     Matrix(){}
 
-    Matrix(const int a_Rows, const int a_Cols) : m_Rows(a_Rows), m_Cols(a_Cols)
+    Matrix(const MatNxNd a_Mat)
+        : m_Mat(a_Mat), m_Rows(a_Mat.size()), m_Cols(a_Mat[0].size()){}
+
+    Matrix(const int a_Rows, const int a_Cols)
+        : m_Rows(a_Rows), m_Cols(a_Cols)
     {
         initMatrix(m_Mat, m_Rows, m_Cols);
     }
-
-    Matrix(const MatNxNd a_Mat) : m_Mat(a_Mat), m_Rows(a_Mat.size()), m_Cols(a_Mat[0].size()){}
 
     int getRows() const { return m_Rows; }
     int getCols() const { return m_Cols; }
