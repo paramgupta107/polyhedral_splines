@@ -9,7 +9,6 @@ typedef std::vector<std::vector<double>> MatNxNd;
 class Matrix
 {
 public:
-
     Matrix(){}
 
     Matrix(const int a_Rows, const int a_Cols) : m_Rows(a_Rows), m_Cols(a_Cols)
@@ -21,17 +20,6 @@ public:
 
     int getRows() const { return m_Rows; }
     int getCols() const { return m_Cols; }
-
-    bool set(int a_Row, int a_Col, double a_Val)
-    {
-        if(a_Row < 0 || a_Row >= m_Rows || a_Col < 0 || a_Col >= m_Cols)
-        {
-            return false;
-        }
-
-        m_Mat[a_Row][a_Col] = a_Val;
-        return true;
-    }
 
     std::vector<double>& operator()(int a_Row)
     {
@@ -77,7 +65,6 @@ public:
     }
 
 private:
-
     int m_Rows, m_Cols;
     MatNxNd m_Mat;
 
