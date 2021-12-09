@@ -2,6 +2,14 @@
 
 #include "T2PatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"
+#include "../Helper/ReadCSV2Matrix.hpp"
+
+Mat256x20d T2PatchConstructor::getMask()
+{
+    std::string t_MaskCSVFilePathT2 = "../Source/src/Patch/Table/T2.csv";
+    return read_csv_as_matrix(t_MaskCSVFilePathT2, 256, 20); //  NumOfTotalCpts = 256, NumOfVerts = 20
+}
+
 
 /*
  *    T2 Structure

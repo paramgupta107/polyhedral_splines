@@ -2,6 +2,13 @@
 
 #include "T0PatchConstructor.hpp"
 #include "../Helper/HalfedgeOperation.hpp"
+#include "../Helper/ReadCSV2Matrix.hpp"
+
+Mat64x14d T0PatchConstructor::getMask()
+{
+    std::string t_MaskCSVFilePathT0 = "../Source/src/Patch/Table/T0.csv";
+    return read_csv_as_matrix(t_MaskCSVFilePathT0, 64, 14); //  NumOfTotalCpts = 64, NumOfVerts = 14
+}
 
 bool T0PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
 {
