@@ -21,10 +21,16 @@ Matrix read_csv_as_matrix(const std::string a_File, const int a_Rows, const int 
             char *t_Ptr = (char *) t_Line.c_str();
             int t_Len = t_Line.length();
 
+            // Skip comments
+            if(t_Ptr[0] == '#')
+            {
+                continue;
+            }
+
             t_Col = 0;
 
             char *t_Start = t_Ptr;
-            for (int i = 0; i < t_Len; i++)
+            for (int i=0; i < t_Len; i++)
             {
                 if (t_Ptr[i] == ',')
                 {
