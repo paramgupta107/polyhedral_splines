@@ -1,4 +1,4 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 //  C++ std library includes
 #include <iostream>
@@ -11,8 +11,8 @@
 //  Our own headers
 #include "Pool/Pool.hpp"
 #include "PatchConsumer/PatchConsumer.hpp"
-#include "PatchConsumer/BVWriter/Serial/BVWriterSerial.hpp"
-#include "serial.hpp"
+#include "PatchConsumer/BVWriter.hpp"
+#include "ProcessMesh.hpp"
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     if(argc < 2)
     {
         std::cout << "\nArgument error!\n";
-        std::cout << "Correct usage:`./SemiStructuredSpline [OPTIONS] ${INPUT_FILENAME}`\n";
+        std::cout << "Correct usage:`./PolyhedralSplines [OPTIONS] ${INPUT_FILENAME}`\n";
         std::cout << "Options: \n";
         std::cout << "-d --DEGREE_RAISE : raise deg 2 patches to deg 3. \n";
         return 1;
@@ -49,12 +49,14 @@ int main(int argc, char **argv)
     const std::string t_InputFile = argv[argc-1];
     OpenMesh::IO::read_mesh(t_Mesh, t_InputFile);
 
-    // Init output .bv file
+    // Init .bv file writer
     const std::string t_FileName = "output.bv";
-    PatchConsumer* t_BVWriterSerial= new BVWriterSerial(t_FileName);
+    PatchConsumer* t_BVWriterSerial= new BVWriter(t_FileName);
 
-    // Generate BB patches and write BB coef. to .bv file
-    serial::process_mesh(t_Mesh, t_BVWriterSerial, t_IsDegRaise);
+    // Users can comment out bv writer and use the custumized writer e.g. IGSWriter
+
+    // Convert mesh into Patches (with BB-coefficients) and write patches into .bv file
+    process_mesh(t_Mesh, t_BVWriterSerial, t_IsDegRaise);
 
     return 0;
 }

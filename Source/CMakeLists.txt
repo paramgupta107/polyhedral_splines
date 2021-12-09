@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.9)
-project (SemiStructuredSpline)
+project (PolyhedralSplines)
 
 # Required by OpenMesh
 set (CMAKE_CXX_STANDARD 17)
@@ -36,7 +36,7 @@ link_directories(${OPENMESH_ROOT}/lib)
 
 # Find source files
 file(GLOB_RECURSE SOURCES src/*.cpp)
-add_executable(SemiStructuredSpline src/main.cpp ${SOURCES})
+add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
 
 
 ### Link OpenMesh ###
@@ -49,11 +49,11 @@ else()
 endif()
 
 target_link_libraries(
-    SemiStructuredSpline
+    PolyhedralSplines
     ${OPENMESH_ROOT}/lib/libOpenMeshCore.${LIB_EXTENSION}
     ${OPENMESH_ROOT}/lib/libOpenMeshTools.${LIB_EXTENSION}
 )
 
 
 # OpenMesh need to be built before main program
-add_dependencies(SemiStructuredSpline OpenMesh)
+add_dependencies(PolyhedralSplines OpenMesh)

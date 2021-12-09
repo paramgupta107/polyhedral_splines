@@ -1,17 +1,17 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 
-#ifndef PATCH_CONSUMER_HPP
-#define PATCH_CONSUMER_HPP
+#ifndef PATCHCONSUMER_HPP
+#define PATCHCONSUMER_HPP
 
 #include "../Patch/Patch.hpp"
 
 /*
  *  Inheriting from this class allows us to change
- *  what we do with the patches.
+ *  what we do with the patches. e.g. customize output format.
+ *  Here we provide IGSWriter as another example.
  *
- *  For normal use, we implement a BVWriter.
- *
+ *  We use BVWriter by default.
  */
 class PatchConsumer
 {
@@ -23,4 +23,4 @@ public:
 };
 
 
-#endif // PATCH_CONSUMER_HPP
+#endif // PATCHCONSUMER_HPP

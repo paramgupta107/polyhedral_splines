@@ -5,13 +5,13 @@
 #include <thread>
 #include <cmath>
 
-#include "BVWriterSerial.hpp"
+#include "BVWriter.hpp"
 
 /*
  *  Constructor.
  *  All it does is open a file.
  */
-BVWriterSerial::BVWriterSerial(const std::string a_OutFile)
+BVWriter::BVWriter(const std::string a_OutFile)
 {
     m_OutFile.open(a_OutFile);
 }
@@ -20,7 +20,7 @@ BVWriterSerial::BVWriterSerial(const std::string a_OutFile)
  *  Destructor.
  *  All it does is close the file.
  */
-BVWriterSerial::~BVWriterSerial()
+BVWriter::~BVWriter()
 {
     m_OutFile.close();
 }
@@ -29,7 +29,7 @@ BVWriterSerial::~BVWriterSerial()
  *  Calls WriteFromQueue in a new thread
  *  and then detaches that thread.
  */
-void BVWriterSerial::Start()
+void BVWriter::Start()
 {
     /*
      *  Do nothing
@@ -42,7 +42,7 @@ void BVWriterSerial::Start()
  *  it has processed all the patches in
  *  the queue.
  */
-void BVWriterSerial::Stop()
+void BVWriter::Stop()
 {
     /*
      *  Do nothing
@@ -54,7 +54,7 @@ void BVWriterSerial::Stop()
  *  Adds a patch to the queue in a
  *  thread-safe way.
  */
-void BVWriterSerial::Consume(const Patch a_Patch)
+void BVWriter::Consume(const Patch a_Patch)
 {
     WritePatch(a_Patch);
     return;
@@ -66,7 +66,7 @@ void BVWriterSerial::Consume(const Patch a_Patch)
  *  See https://www.cise.ufl.edu/research/SurfLab/bview/
  *  for information on the file format.
  */
-void BVWriterSerial::WritePatch(Patch a_Patch)
+void BVWriter::WritePatch(Patch a_Patch)
 {
     // Check that the patch has the correct
     // number of control points for its degree

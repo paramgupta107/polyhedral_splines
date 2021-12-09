@@ -52,13 +52,13 @@ Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/
 ## Execution
 
 ```shell
-./SemiStructuredSpline /path/to/filename.obj
+./PolyhedralSplines /path/to/filename.obj
 ```
 Note: test .obj files are in `/testfile`.
 
 User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
 ```shell
-./SemiStructuredSpline -d /path/to/filename.obj
+./PolyhedralSplines -d /path/to/filename.obj
 ```
 
 ## View .bv file
