@@ -32,8 +32,8 @@ CentOS 8: g++-8
 # - Building #
 
 ```shell
-git clone https://bitbucket.org/surflab/low_degree_semi_structured_spline.git
-cd low_degree_semi_structured_spline
+git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
+cd polyhedral_splines
 mkdir build
 cd build
 cmake ../Source
@@ -43,7 +43,7 @@ make
 **Note:** macOS users need to make sure $PATH includes path to qt5 bin folder
 
 # - Usages #
-* Input:  mesh (with semi-structured layout) in .obj file format
+* Input:  quad-dominant mesh in .obj file format
 * Output: BB-coefficients written in .bv file format.
 
 
