@@ -1,3 +1,5 @@
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
+
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 

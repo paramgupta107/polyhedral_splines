@@ -17,9 +17,9 @@ class PatchConsumer
 {
 public:
     virtual ~PatchConsumer() = default;
-    virtual void Start() = 0;
-    virtual void Stop() = 0;
-    virtual void Consume(Patch a_Patch) = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
+    virtual void consume(Patch a_Patch) = 0;
 };
 
 

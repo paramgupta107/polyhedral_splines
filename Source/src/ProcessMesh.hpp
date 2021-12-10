@@ -15,7 +15,7 @@ void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool 
 	// Construct the pool which will process the mesh
 	PatchConstructorPool t_PatchConstructorPool(a_Mesh);
 
-	a_Consumer->Start();
+	a_Consumer->start();
 
 	// Face iteration
 	MeshType::FaceIter t_FaceIt, t_FaceEnd(a_Mesh.faces_end());
@@ -35,7 +35,7 @@ void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool 
 				t_Patch.degRaise();
 			}
 
-			a_Consumer->Consume(t_Patch);
+			a_Consumer->consume(t_Patch);
 		}
 	}
 
@@ -57,11 +57,11 @@ void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool 
 				t_Patch.degRaise();
 			}
 
-			a_Consumer->Consume(t_Patch);
+			a_Consumer->consume(t_Patch);
 		}
 	}
 
-	a_Consumer->Stop();
+	a_Consumer->stop();
 
 	return;
 }

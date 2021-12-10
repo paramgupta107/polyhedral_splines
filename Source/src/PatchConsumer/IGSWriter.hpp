@@ -1,7 +1,7 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef BVWRITER_HPP
-#define BVWRITER_HPP
+#ifndef IGSWRITER_HPP
+#define IGSWRITER_HPP
 
 #include <string>
 #include <mutex>
@@ -11,17 +11,20 @@
 #include "PatchConsumer.hpp"
 #include "../Patch/Patch.hpp"
 
-class BVWriter : public PatchConsumer
+class IGSWriter : public PatchConsumer
 {
 public:
-    BVWriter(const std::string a_OutFile);
-    ~BVWriter();
+    IGSWriter(const std::string a_OutFile);
+    ~IGSWriter();
     void start();
     void stop();
     void consume(const Patch a_Patch);
 private:
-    std::ofstream m_OutFile;
+    std::vector<Patch> m_Patches;
+    FILE* m_OutFile;
+    int m_NumOfFaces = 0;
+    int knots(int dg1, int bbase, int ffctr, FILE* fp, int per_line);
     void writePatch(const Patch a_Patch);
 };
 
-#endif // BVWRITER_HPP
+#endif // IGSWRITER_HPP

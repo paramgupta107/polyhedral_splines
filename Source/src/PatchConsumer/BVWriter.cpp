@@ -1,4 +1,4 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
 #include <assert.h>
 #include <iomanip>
@@ -29,7 +29,7 @@ BVWriter::~BVWriter()
  *  Calls WriteFromQueue in a new thread
  *  and then detaches that thread.
  */
-void BVWriter::Start()
+void BVWriter::start()
 {
     /*
      *  Do nothing
@@ -42,7 +42,7 @@ void BVWriter::Start()
  *  it has processed all the patches in
  *  the queue.
  */
-void BVWriter::Stop()
+void BVWriter::stop()
 {
     /*
      *  Do nothing
@@ -54,9 +54,9 @@ void BVWriter::Stop()
  *  Adds a patch to the queue in a
  *  thread-safe way.
  */
-void BVWriter::Consume(const Patch a_Patch)
+void BVWriter::consume(const Patch a_Patch)
 {
-    WritePatch(a_Patch);
+    writePatch(a_Patch);
     return;
 }
 
@@ -66,7 +66,7 @@ void BVWriter::Consume(const Patch a_Patch)
  *  See https://www.cise.ufl.edu/research/SurfLab/bview/
  *  for information on the file format.
  */
-void BVWriter::WritePatch(Patch a_Patch)
+void BVWriter::writePatch(Patch a_Patch)
 {
     // Check that the patch has the correct
     // number of control points for its degree
