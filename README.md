@@ -1,7 +1,7 @@
 # - Environment Setting
 
 ### Recommended Operating Systems
-Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
+Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15) & Windows 10
 
 ### Dependencies
 
@@ -23,6 +23,8 @@ Debian 11: g++-9 g++-10 g++11
 
 CentOS 8: g++-8
 
+windows 10: Visual Studio 2017
+
 **Note:**
 
 * CMake will automatically download and install OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
@@ -30,7 +32,7 @@ CentOS 8: g++-8
 
 
 # - Building #
-
+For UNIX-based system:
 ```shell
 git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
 cd polyhedral_splines
