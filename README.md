@@ -82,7 +82,7 @@ PolyhedralSplines.exe /path/to/filename.obj
 ```
 
 ```shell
-./PolyhedralSplines -d /path/to/filename.obj
+PolyhedralSplines.exe -d /path/to/filename.obj
 ```
 
 ## View .bv file
