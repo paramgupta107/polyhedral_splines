@@ -44,7 +44,7 @@ make
 
 For Windows:
 
-1. Launch x86 Native Tools Command Prompt for VS 2017
+1. Launch `x86 Native Tools Command Prompt for VS 2017`
 
 2. Run commands for UNIX-based system except for `make`
 
@@ -65,13 +65,22 @@ For Windows:
 Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/bview/#file-format) on UF CISE SurfLab website
 
 ## Execution
-
+For UNIX-based system:
 ```shell
 ./PolyhedralSplines /path/to/filename.obj
 ```
 Note: test .obj files are in `/testfile`.
 
 User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
+```shell
+./PolyhedralSplines -d /path/to/filename.obj
+```
+
+For Windows:
+```shell
+PolyhedralSplines.exe /path/to/filename.obj
+```
+
 ```shell
 ./PolyhedralSplines -d /path/to/filename.obj
 ```
