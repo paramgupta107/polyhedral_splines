@@ -23,7 +23,7 @@ Debian 11: g++-9 g++-10 g++11
 
 CentOS 8: g++-8
 
-windows 10: Visual Studio 2017
+Windows 10: Visual Studio 2017
 
 **Note:**
 
@@ -41,6 +41,20 @@ cd build
 cmake ../Source
 make
 ```
+For Windows:
+1. Launch x86 Native Tools Command Prompt for VS 2017
+2. 
+```shell
+git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
+cd polyhedral_splines
+mkdir build
+cd build
+cmake ../Source
+```
+3. Launch `PolyhedralSplines.sln` with Visual Studio 2017
+4. Set configuration to Release mode and switch platform to Win32
+5. Click Build Solution
+
 
 **Note:** macOS users need to make sure $PATH includes path to qt5 bin folder
 
