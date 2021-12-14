@@ -61,5 +61,5 @@ endif()
 add_custom_command(
     TARGET PolyhedralSplines
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E TABLE_SRC_PATH TABLE_TRG_PATH
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${TABLE_SRC_PATH} ${TABLE_TRG_PATH}
 )
