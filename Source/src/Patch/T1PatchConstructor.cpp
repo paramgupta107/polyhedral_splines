@@ -6,7 +6,7 @@
 
 Mat128x18d T1PatchConstructor::getMask()
 {
-    std::string t_MaskCSVFilePathT1 = "../Source/src/Patch/Table/T1.csv";
+    std::string t_MaskCSVFilePathT1 = "./Table/T1.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathT1, 128, 18); //  NumOfTotalCpts = 128, NumOfVerts = 18
 }
 

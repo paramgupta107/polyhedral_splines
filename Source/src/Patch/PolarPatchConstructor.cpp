@@ -9,37 +9,37 @@
  */
 Mat36x4d PolarPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "../Source/src/Patch/Table/polarSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "./Table/polarSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 36, 4); //  NumOfTotalCpts = 60, NumOfVerts = 4
 }
 
 Mat48x5d PolarPatchConstructor::getMaskSct4()
 {
-    std::string t_MaskCSVFilePathSct4 = "../Source/src/Patch/Table/polarSct4.csv";
+    std::string t_MaskCSVFilePathSct4 = "./Table/polarSct4.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct4, 48, 5);
 }
 
 Mat60x6d PolarPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "../Source/src/Patch/Table/polarSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "./Table/polarSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 60, 6);
 }
 
 Mat72x7d PolarPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "../Source/src/Patch/Table/polarSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "./Table/polarSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 72, 7);
 }
 
 Mat84x8d PolarPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "../Source/src/Patch/Table/polarSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "./Table/polarSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 84, 8);
 }
 
 Mat96x9d PolarPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "../Source/src/Patch/Table/polarSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "./Table/polarSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 96, 9);
 }
 

@@ -3,6 +3,7 @@
 #include "ReadCSV2Matrix.hpp"
 #include <iostream>
 #include <fstream>
+#include <string>
 
 Matrix read_csv_as_matrix(const std::string a_File, const int a_Rows, const int a_Cols)
 {

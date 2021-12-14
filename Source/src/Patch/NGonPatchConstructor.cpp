@@ -6,31 +6,31 @@
 
 Mat48x12d NGonPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "../Source/src/Patch/Table/ngonSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "./Table/ngonSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 48, 12);
 }
 
 Mat80x20d NGonPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "../Source/src/Patch/Table/ngonSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "./Table/ngonSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 80, 20);
 }
 
 Mat384x24d NGonPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "../Source/src/Patch/Table/ngonSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "./Table/ngonSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 384, 24);
 }
 
 Mat448x28d NGonPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "../Source/src/Patch/Table/ngonSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "./Table/ngonSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 448, 28);
 }
 
 Mat512x32d NGonPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "../Source/src/Patch/Table/ngonSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "./Table/ngonSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 32);
 }
 

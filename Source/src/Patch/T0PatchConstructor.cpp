@@ -6,7 +6,7 @@
 
 Mat64x14d T0PatchConstructor::getMask()
 {
-    std::string t_MaskCSVFilePathT0 = "../Source/src/Patch/Table/T0.csv";
+    std::string t_MaskCSVFilePathT0 = "./Table/T0.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathT0, 64, 14); //  NumOfTotalCpts = 64, NumOfVerts = 14
 }
 

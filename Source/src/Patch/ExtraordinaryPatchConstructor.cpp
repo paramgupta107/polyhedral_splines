@@ -6,31 +6,31 @@
 
 Mat48x7d ExtraordinaryPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "../Source/src/Patch/Table/eopSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "./Table/eopSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 48, 7);
 }
 
 Mat80x11d ExtraordinaryPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "../Source/src/Patch/Table/eopSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "./Table/eopSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 80, 11);
 }
 
 Mat384x13d ExtraordinaryPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "../Source/src/Patch/Table/eopSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "./Table/eopSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 384, 13);
 }
 
 Mat448x15d ExtraordinaryPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "../Source/src/Patch/Table/eopSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "./Table/eopSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 448, 15);
 }
 
 Mat512x17d ExtraordinaryPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "../Source/src/Patch/Table/eopSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "./Table/eopSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 17);
 }
 

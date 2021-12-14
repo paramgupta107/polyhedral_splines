@@ -6,10 +6,14 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Force make to stop after first error
-add_definitions(
-    -Wfatal-errors # stop after first error
-    -w
-)
+if(UNIX)
+  add_definitions(
+     -Wfatal-errors # stop after first error
+     -w
+  )
+endif()
+
+add_compile_definitions(_USE_MATH_DEFINES)
 
 ################################################################################
 # Clone and build install dependencies
@@ -20,40 +24,42 @@ include(ExternalProject)
 set(OPENMESH_ROOT ${CMAKE_SOURCE_DIR}/External/OpenMesh)
 
 ExternalProject_Add(
-    OpenMesh
+  OpenMesh
 	PREFIX ${OPENMESH_ROOT}
 	GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
 	GIT_TAG db8c0608830ae7324b2b2e1d91e4db565b2d3eae
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_CXX_FLAGS="-w"
-    BUILD_COMMAND make -j6
-    INSTALL_COMMAND make install -j6
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+             -DBUILD_APPS=FALSE
+             -DCMAKE_BUILD_TYPE=RELEASE
 )
 
 ################################################################################
 
-# Needed by macOS (@rpath issue)
 link_directories(${OPENMESH_ROOT}/lib)
 
 # Find source files
 file(GLOB_RECURSE SOURCES src/*.cpp)
 add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
 
-
 ### Link OpenMesh ###
 include_directories(SYSTEM ${OPENMESH_ROOT}/include)
-
-if(APPLE)
-    set(LIB_EXTENSION dylib)
-else()
-    set(LIB_EXTENSION so)
-endif()
-
-target_link_libraries(
-    PolyhedralSplines
-    ${OPENMESH_ROOT}/lib/libOpenMeshCore.${LIB_EXTENSION}
-    ${OPENMESH_ROOT}/lib/libOpenMeshTools.${LIB_EXTENSION}
-)
-
+target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
 
 # OpenMesh need to be built before main program
 add_dependencies(PolyhedralSplines OpenMesh)
+
+
+# Copy tables to build folder
+set(TABLE_SRC_PATH ${CMAKE_SOURCE_DIR}/src/Patch/Table)
+
+if(UNIX)
+  set(TABLE_TRG_PATH ${CMAKE_SOURCE_DIR}/../build/Table)
+elseif(WIN32)
+  set(TABLE_TRG_PATH ${CMAKE_SOURCE_DIR}/../build/Release/Table)
+endif()
+
+add_custom_command(
+    TARGET PolyhedralSplines
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E TABLE_SRC_PATH TABLE_TRG_PATH
+)
