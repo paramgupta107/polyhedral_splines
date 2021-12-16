@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef BVWRITER_HPP
-#define BVWRITER_HPP
+#pragma once
 
 #include <string>
 #include <mutex>
@@ -23,5 +22,3 @@ private:
     std::ofstream m_OutFile;
     void writePatch(const Patch a_Patch);
 };
-
-#endif // BVWRITER_HPP

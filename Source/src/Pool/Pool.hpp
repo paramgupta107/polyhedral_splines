@@ -1,7 +1,6 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef PATCHPOOL_HPP
-#define PATCHPOOL_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "../Patch/Patch.hpp"
@@ -51,6 +50,3 @@ template <typename T> PatchConstructor* PatchConstructorPool::getPatchConstructo
 }
 template PatchConstructor* PatchConstructorPool::getPatchConstructor(const VertexHandle& a_VertexHandle) const;
 template PatchConstructor* PatchConstructorPool::getPatchConstructor(const FaceHandle& a_FaceHandle) const;
-
-
-#endif //PATCHPOOL_HPP

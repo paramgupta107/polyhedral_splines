@@ -1,7 +1,6 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef PATCH_HPP
-#define PATCH_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <iostream>
@@ -163,6 +162,3 @@ struct Patch
     // m_BBcoefs should be a m_DegU+1 x m_DegV+1 2D array
     std::vector<std::vector<Point>> m_BBcoefs;
 };
-
-
-#endif //PATCH_HPP

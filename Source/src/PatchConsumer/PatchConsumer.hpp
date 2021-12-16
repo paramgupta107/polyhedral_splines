@@ -1,8 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-
-#ifndef PATCHCONSUMER_HPP
-#define PATCHCONSUMER_HPP
+#pragma once
 
 #include "../Patch/Patch.hpp"
 
@@ -38,6 +36,3 @@ public:
     virtual void stop() = 0;
     virtual void consume(Patch a_Patch) = 0;
 };
-
-
-#endif // PATCHCONSUMER_HPP

@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef IGSWRITER_HPP
-#define IGSWRITER_HPP
+#pragma once
 
 #include <string>
 #include <mutex>
@@ -26,5 +25,3 @@ private:
     int knots(int dg1, int bbase, int ffctr, FILE* fp, int per_line);
     void writePatch(const Patch a_Patch);
 };
-
-#endif // IGSWRITER_HPP

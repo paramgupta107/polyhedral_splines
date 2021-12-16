@@ -1,7 +1,6 @@
-/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */ 
+/* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef PATCHCONSTRUCTOR_HPP
-#define PATCHCONSTRUCTOR_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "Patch.hpp"
@@ -18,5 +17,3 @@ public:
     virtual std::vector<Patch> getPatch(const VertexHandle&) { return {}; };
     virtual std::vector<Patch> getPatch(const FaceHandle&) { return {}; };
 };
-
-#endif //PATCHCONSTRUCTOR_HPP

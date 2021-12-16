@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef EXTRAORDINARYPATCHCONSTRUCTOR_HPP
-#define EXTRAORDINARYPATCHCONSTRUCTOR_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
@@ -43,5 +42,3 @@ private:
 
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
 };
-
-#endif //EXTRAORDINARYPATCHCONSTRUCTOR_HPP

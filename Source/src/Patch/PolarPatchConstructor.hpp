@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef POLARPATCHCONSTRUCTOR_HPP
-#define POLARPATCHCONSTRUCTOR_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
@@ -47,5 +46,3 @@ private:
     Mat96x9d getMaskSct8();
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
 };
-
-#endif //POLARPATCHCONSTRUCTOR_HPP

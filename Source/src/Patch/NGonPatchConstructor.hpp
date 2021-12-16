@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef NGONPATCHCONSTRUCTOR_HPP
-#define NGONPATCHCONSTRUCTOR_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
@@ -44,5 +43,3 @@ private:
 
     std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
 };
-
-#endif //NGONPATCHCONSTRUCTOR_HPP

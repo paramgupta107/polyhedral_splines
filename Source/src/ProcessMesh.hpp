@@ -1,8 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-
-#ifndef PROCESSMESH_HPP
-#define PROCESSMESH_HPP
+#pragma once
 
 #include "Pool/Pool.hpp"
 #include "PatchConsumer/PatchConsumer.hpp"
@@ -65,5 +63,3 @@ void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool 
 
 	return;
 }
-
-#endif // PROCESSMESH_HPP

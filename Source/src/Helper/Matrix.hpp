@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -86,5 +85,3 @@ private:
     }
 
 };
-
-#endif // MATRIX_HPP

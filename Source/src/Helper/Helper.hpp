@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef HELPER_HPP
-#define HELPER_HPP
+#pragma once
 
 #include "Matrix.hpp"
 #include "../Patch/Patch.hpp"
@@ -63,5 +62,3 @@ std::vector<Patch> points_mat_to_patches(const int a_PatchDegU, const int a_Patc
 template <typename T> std::vector<T> duplicate_vector(int a_Times, const std::vector<T>& a_Vector);
 
 } // end of Helper namespace
-
-#endif //HELPER_HPP

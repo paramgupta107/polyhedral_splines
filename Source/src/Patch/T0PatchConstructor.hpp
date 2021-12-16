@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef T0PATCHCONSTRUCTOR_HPP
-#define T0PATCHCONSTRUCTOR_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include "PatchConstructor.hpp"
@@ -26,5 +25,3 @@ private:
     std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
 
 };
-
-#endif //T0PATCHCONSTRUCTOR_HPP

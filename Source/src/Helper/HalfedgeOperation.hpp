@@ -1,7 +1,6 @@
 /* copyright(c)Jorg Peters [jorg.peters@gmail.com] */
 
-#ifndef HALFEDGEOPERATION_HPP
-#define HALFEDGEOPERATION_HPP
+#pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 
@@ -31,5 +30,3 @@ void init_verts_fixed_halfedge(const MeshType& a_Mesh, HalfedgeHandle a_Halfedge
 std::vector<int> duplicate_commands(int a_Times, const std::vector<int>& a_Commands);
 
 }
-
-#endif //HALFEDGEOPERATION_HPP
