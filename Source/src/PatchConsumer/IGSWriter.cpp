@@ -55,11 +55,7 @@ int IGSWriter::knots(int a_Deg1, int a_Bbase, int a_Ffctr, FILE* fp, int a_PerLi
  */
 IGSWriter::~IGSWriter()
 {
-    // Write start line
     fprintf(m_OutFile, "copyright(c)Jorg Peters [jorg.peters@gmail.com]                         S      1\n");
-
-    // Add header
-    //fprintf(m_OutFile, "copyright(c)Jorg Peters [jorg.peters@gmail.com]                         G      1\n");
 
     int k, k1, w, w1, rows, flen[4], i, m, j, col, cols, fc, sds, dg;
     double	h;

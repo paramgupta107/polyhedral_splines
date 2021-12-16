@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 
     // Users can comment out BVWriter and use IGSWriter
     // or implement MyWriter to have customized output for PDE solver, momentum computation, etc.
-    //const std::string t_FileName = "output.igs";
-    //PatchConsumer* t_Writer = new IGSWriter(t_FileName);
+    /*const std::string t_FileName = "output.igs";
+    PatchConsumer* t_Writer = new IGSWriter(t_FileName);*/
 
     // Convert mesh into Patches (contain BB-coefficients) and write patches into .bv file
     process_mesh(t_Mesh, t_Writer, t_IsDegRaise);
