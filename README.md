@@ -1,7 +1,7 @@
 # - Environment Setting
 
 ### Recommended Operating Systems
-Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15)
+Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15) & Windows 10
 
 ### Dependencies
 
@@ -23,6 +23,8 @@ Debian 11: g++-9 g++-10 g++11
 
 CentOS 8: g++-8
 
+Windows 10: Visual Studio 2017
+
 **Note:**
 
 * CMake will automatically download and install OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
@@ -30,7 +32,7 @@ CentOS 8: g++-8
 
 
 # - Building #
-
+For UNIX-based system:
 ```shell
 git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
 cd polyhedral_splines
@@ -39,6 +41,19 @@ cd build
 cmake ../Source
 make
 ```
+
+For Windows:
+
+1. Launch `x86 Native Tools Command Prompt for VS 2017`
+
+2. Run commands for UNIX-based system except for `make`
+
+3. Launch `PolyhedralSplines.sln` with Visual Studio 2017
+
+4. Set configuration to `Release` mode and switch platform to `Win32`
+
+5. Click `Build Solution`
+
 
 **Note:** macOS users need to make sure $PATH includes path to qt5 bin folder
 
@@ -50,7 +65,7 @@ make
 Please find [BView file introduction](https://www.cise.ufl.edu/research/SurfLab/bview/#file-format) on UF CISE SurfLab website
 
 ## Execution
-
+For UNIX-based system:
 ```shell
 ./PolyhedralSplines /path/to/filename.obj
 ```
@@ -59,6 +74,15 @@ Note: test .obj files are in `/testfile`.
 User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches to a uniform 3x3
 ```shell
 ./PolyhedralSplines -d /path/to/filename.obj
+```
+
+For Windows:
+```shell
+PolyhedralSplines.exe /path/to/filename.obj
+```
+
+```shell
+PolyhedralSplines.exe -d /path/to/filename.obj
 ```
 
 ## View .bv file
