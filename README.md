@@ -65,7 +65,7 @@ cmake ../Source
 
 **Note:** macOS users need to make sure $PATH includes path to qt5 bin folder
 
-# - Usages #
+# - Usage #
 * Input:  quad-dominant mesh in .obj file format
 * Output: BB-coefficients written in .bv file format.
 
