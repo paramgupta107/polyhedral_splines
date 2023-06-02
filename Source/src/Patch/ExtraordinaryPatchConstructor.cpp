@@ -49,11 +49,34 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
         return false;
     }
 
-    // The first layer of faces should all be quad
-    auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
-    for(auto t_Vert : t_FirstLayerFaces)
+    // // The first layer of faces should all be quad
+    // auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
+    // for(auto t_Vert : t_FirstLayerFaces)
+    // {
+    //     if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
+    //     {
+    //         return false;
+    //     }
+    // }
+
+    // The surrounding faces should be either quad or triangle
+    int t_ConsecutiveTriangleCount = 0;
+    for(auto t_VFIt = m_Mesh.cvf_ccwiter(a_VertexHandle); t_VFIt.is_valid(); ++t_VFIt)
     {
-        if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
+        if(Helper::is_triangle(m_Mesh, *t_VFIt))
+        {
+            t_ConsecutiveTriangleCount++;
+        }
+        else if(Helper::is_quad(m_Mesh, *t_VFIt))
+        {
+            t_ConsecutiveTriangleCount = 0;
+        }
+        else
+        {
+            return false;
+        }
+
+        if(t_ConsecutiveTriangleCount > 2)
         {
             return false;
         }
@@ -78,9 +101,35 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
 std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle)
 {
     std::vector<VertexHandle> t_VertexHandles;
+    std::vector<VertexHandle> t_NBVerts;
     for(auto t_VHIt = m_Mesh.cvoh_ccwiter(a_VertexHandle); t_VHIt.is_valid(); ++t_VHIt)
     {
-        auto t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, {1,4,1,4});
+        auto t_CurrFH = m_Mesh.face_handle(*t_VHIt);
+        std::vector<int> t_Commands;
+        if(Helper::is_quad(m_Mesh, t_CurrFH))
+        {
+            t_Commands = {1,4,1,4};
+        }
+        else if(Helper::is_triangle(m_Mesh, t_CurrFH))
+        {   
+            auto t_OppositeHE = m_Mesh.opposite_halfedge_handle(*t_VHIt);
+            auto t_PreFH = m_Mesh.face_handle(t_OppositeHE);
+            if(Helper::is_quad(m_Mesh, t_PreFH))
+            {
+                t_Commands = {1,4,1,4};
+            }
+            else
+            {
+                t_Commands = {1,4,4};
+            }
+        }
+        else
+        {
+            assert(false);
+        }
+
+        t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, t_Commands);
+        
         for(auto t_NBVert : t_NBVerts)
         {
             t_VertexHandles.push_back(t_NBVert);
@@ -102,7 +151,7 @@ std::vector<Patch> ExtraordinaryPatchConstructor::getPatch(const VertexHandle& a
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_VertexHandle);
 
-    // Convert Neighbor Verts to matrix type
+    // Convert neighbor verts to matrix type
     auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
 
     // multiply CC points with mask to generate patches
