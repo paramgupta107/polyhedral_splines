@@ -1,3 +1,12 @@
+
+
+### cite as
+<i>Bi-cubic splines for polyhedral control nets</i>,
+Jörg Peters , Kyle Lo, Kestutis Karciauskas
+TOMS , 2023
+[paper](https://www.cise.ufl.edu/research/SurfLab/papers/23PolySpl_TOMS.pdf)
+[documentation](<https://www.cise.ufl.edu/research/SurfLab/papers/23PolySpl_TOMS_Doc.pdf>)
+
 # - Environment Setting
 
 ### Recommended Operating Systems
