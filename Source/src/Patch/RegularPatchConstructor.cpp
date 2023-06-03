@@ -14,20 +14,23 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
         return false;
     }
 
-    // Get faces around the vert
-    auto t_NBFaceHandles = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
-
-    // Check if there are four faces around the vertex
-    const int t_NumOfFacesForRegCase = 4;
-    if(Helper::get_num_of_neighbor_faces(t_NBFaceHandles) != t_NumOfFacesForRegCase)
+    // The surrounding faces should be either quad or triangle and no more than two
+    // consecutive triangles.
+    auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
+    bool t_IsPrevTri = false;
+    for(int i=0; i<t_FHs.size(); i++)
     {
-        return false;
-    }
+        if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
+        {
+            return false;
+        }
 
-    // Check whether 4 neighbor faces are all quad
-    if(!Helper::are_faces_all_quads(m_Mesh, t_NBFaceHandles))
-    {
-        return false;
+        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && 
+           Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()]) &&
+           Helper::is_triangle(m_Mesh, t_FHs[(i+2)%t_FHs.size()]))
+        {
+            return false;
+        }
     }
 
     return true;
@@ -96,12 +99,48 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
      *    6  7  8
      */
     // Four wings
-    std::vector<std::vector<int>> t_GetVertOrder{{1,0}, {3,6}, {7,8}, {5,2}};
+    std::vector<int> t_GetVertOrder = {1,0,3,6,7,8,5,2};
 
-    // Operation for one wing
-    std::vector<int> t_WingOperation{1,4,1,4,1,3};
+    // // Operation for one wing
+    // std::vector<int> t_WingOperation{1,4,1,4,1,3};
 
-    HalfedgeOperation::init_verts(m_Mesh, t_CurrentHef, t_NBVertexHandles, t_GetVertOrder, t_WingOperation);
+    // HalfedgeOperation::init_verts(m_Mesh, t_CurrentHef, t_NBVertexHandles, t_GetVertOrder, t_WingOperation);
+    int i = 0;
+    std::vector<VertexHandle> t_NBVerts;
+    for(auto t_VHIt = m_Mesh.cvoh_ccwiter(a_VertHandle); t_VHIt.is_valid(); ++t_VHIt)
+    {
+        auto t_CurrFH = m_Mesh.face_handle(*t_VHIt);
+        std::vector<int> t_Commands;
+        if(Helper::is_quad(m_Mesh, t_CurrFH))
+        {
+            t_Commands = {1,4,1,4};
+        }
+        else if(Helper::is_triangle(m_Mesh, t_CurrFH))
+        {   
+            auto t_OppositeHE = m_Mesh.opposite_halfedge_handle(*t_VHIt);
+            auto t_PreFH = m_Mesh.face_handle(t_OppositeHE);
+            if(Helper::is_quad(m_Mesh, t_PreFH))
+            {
+                t_Commands = {1,4,1,4};
+            }
+            else
+            {
+                t_Commands = {1,4,4};
+            }
+        }
+        else
+        {
+            assert(false);
+        }
+
+        t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, t_Commands);
+        
+        for(auto t_NBVert : t_NBVerts)
+        {
+            t_NBVertexHandles[t_GetVertOrder[i]] = t_NBVert;
+            i++;
+        }
+    }
 
     return t_NBVertexHandles;
 }

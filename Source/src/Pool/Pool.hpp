@@ -8,7 +8,7 @@
 #include "../Patch/T1PatchConstructor.hpp"
 #include "../Patch/T2PatchConstructor.hpp"
 #include "../Patch/ExtraordinaryPatchConstructor.hpp"
-#include "../Patch/TwoTrianglesTwoQuadsPatchConstructor.hpp"
+// #include "../Patch/TwoTrianglesTwoQuadsPatchConstructor.hpp"
 #include "../Patch/NGonPatchConstructor.hpp"
 #include "../Patch/PolarPatchConstructor.hpp"
 #include "../Patch/RegularPatchConstructor.hpp"
@@ -24,7 +24,7 @@ public:
         // Functions to generate patches
         m_PatchConstructorPool.push_back(new RegularPatchConstructor{a_Mesh});
         m_PatchConstructorPool.push_back(new ExtraordinaryPatchConstructor{a_Mesh});
-        m_PatchConstructorPool.push_back(new TwoTrianglesTwoQuadsPatchConstructor{a_Mesh});
+        // m_PatchConstructorPool.push_back(new TwoTrianglesTwoQuadsPatchConstructor{a_Mesh}); // deprecated
         m_PatchConstructorPool.push_back(new PolarPatchConstructor{a_Mesh});
         m_PatchConstructorPool.push_back(new T0PatchConstructor{a_Mesh});
         m_PatchConstructorPool.push_back(new T1PatchConstructor{a_Mesh});

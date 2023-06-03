@@ -59,24 +59,20 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
     //     }
     // }
 
-    // The surrounding faces should be either quad or triangle
-    int t_ConsecutiveTriangleCount = 0;
-    for(auto t_VFIt = m_Mesh.cvf_ccwiter(a_VertexHandle); t_VFIt.is_valid(); ++t_VFIt)
+    // The surrounding faces should be either quad or triangle and no more than two
+    // consecutive triangles.
+    auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
+    bool t_IsPrevTri = false;
+    for(int i=0; i<t_FHs.size(); i++)
     {
-        if(Helper::is_triangle(m_Mesh, *t_VFIt))
-        {
-            t_ConsecutiveTriangleCount++;
-        }
-        else if(Helper::is_quad(m_Mesh, *t_VFIt))
-        {
-            t_ConsecutiveTriangleCount = 0;
-        }
-        else
+        if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
         {
             return false;
         }
 
-        if(t_ConsecutiveTriangleCount > 2)
+        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && 
+           Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()]) &&
+           Helper::is_triangle(m_Mesh, t_FHs[(i+2)%t_FHs.size()]))
         {
             return false;
         }
