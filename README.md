@@ -55,9 +55,11 @@ For Windows:
 
 1. Launch `x86 Native Tools Command Prompt for VS 2017` with admin
 
+
 2. Run the following commands
 
 ```
+cd Downloads
 git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
 cd polyhedral_splines
 mkdir build
@@ -65,7 +67,7 @@ cd build
 cmake ../Source
 ```
 
-3. In the build folder find and launch `PolyhedralSplines.sln` with Visual Studio 2017 (or just double click on .sln file)
+3. In the build folder find and launch `PolyhedralSplines.sln` with Visual Studio 2017 (or just double click on .sln file from file browser)
 
 4. In Visual Studio 2017, set configuration to `Release` mode and switch platform to `Win32` then click `Build Solution`
 
@@ -95,11 +97,14 @@ User can add option `-d` or `--DEGREE_RAISE` to raise the degree of all patches 
 
 For Windows:
 ```
-Release\PolyhedralSplines.exe \path\to\filename.obj
+cd Release
+PolyhedralSplines.exe \path\to\filename.obj
+(PolyhedralSplines.exe ..\..\testfile\cube.obj)
 ```
 
 ```
-Release\PolyhedralSplines.exe -d \path\to\filename.obj
+cd Release
+PolyhedralSplines.exe -d \path\to\filename.obj
 ```
 
 ## View .bv file
