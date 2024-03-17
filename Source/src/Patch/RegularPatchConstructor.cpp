@@ -17,7 +17,7 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
     // The surrounding faces should be either quad or triangle and no more than two
     // consecutive triangles.
     auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
-    bool t_IsPrevTri = false;
+    int t_Tri_Count = 0;
     for(int i=0; i<t_FHs.size(); i++)
     {
         if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
@@ -25,12 +25,17 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
             return false;
         }
 
-        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && 
-           Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()]) &&
-           Helper::is_triangle(m_Mesh, t_FHs[(i+2)%t_FHs.size()]))
+        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && (
+           !Helper::is_triangle(m_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
+           !Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()])))
         {
+            t_Tri_Count++;
             return false;
         }
+    }
+    if (t_Tri_Count != 0 && t_Tri_Count != 2)
+    {
+        return false;
     }
 
     return true;
@@ -116,7 +121,7 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
             t_Commands = {1,4,1,4};
         }
         else if(Helper::is_triangle(m_Mesh, t_CurrFH))
-        {   
+        {
             auto t_OppositeHE = m_Mesh.opposite_halfedge_handle(*t_VHIt);
             auto t_PreFH = m_Mesh.face_handle(t_OppositeHE);
             if(Helper::is_quad(m_Mesh, t_PreFH))
@@ -134,7 +139,7 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
         }
 
         t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, t_Commands);
-        
+
         for(auto t_NBVert : t_NBVerts)
         {
             t_NBVertexHandles[t_GetVertOrder[i]] = t_NBVert;

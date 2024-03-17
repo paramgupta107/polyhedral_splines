@@ -49,34 +49,34 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
         return false;
     }
 
-    // // The first layer of faces should all be quad
-    // auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
-    // for(auto t_Vert : t_FirstLayerFaces)
-    // {
-    //     if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
-    //     {
-    //         return false;
-    //     }
-    // }
-
-    // The surrounding faces should be either quad or triangle and no more than two
-    // consecutive triangles.
-    auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
-    bool t_IsPrevTri = false;
-    for(int i=0; i<t_FHs.size(); i++)
+    // The first layer of faces should all be quad
+    auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
+    for(auto t_Vert : t_FirstLayerFaces)
     {
-        if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
-        {
-            return false;
-        }
-
-        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && 
-           Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()]) &&
-           Helper::is_triangle(m_Mesh, t_FHs[(i+2)%t_FHs.size()]))
+        if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
         {
             return false;
         }
     }
+
+    // // The surrounding faces should be either quad or triangle and no more than two
+    // // consecutive triangles.
+    // auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
+    // bool t_IsPrevTri = false;
+    // for(int i=0; i<t_FHs.size(); i++)
+    // {
+    //     if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
+    //     {
+    //         return false;
+    //     }
+    //
+    //     if(Helper::is_triangle(m_Mesh, t_FHs[i]) &&
+    //        Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()]) &&
+    //        Helper::is_triangle(m_Mesh, t_FHs[(i+2)%t_FHs.size()]))
+    //     {
+    //         return false;
+    //     }
+    // }
 
     std::cout << t_Valence << "-valent EOP" << std::endl;
 
@@ -107,7 +107,7 @@ std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const
             t_Commands = {1,4,1,4};
         }
         else if(Helper::is_triangle(m_Mesh, t_CurrFH))
-        {   
+        {
             auto t_OppositeHE = m_Mesh.opposite_halfedge_handle(*t_VHIt);
             auto t_PreFH = m_Mesh.face_handle(t_OppositeHE);
             if(Helper::is_quad(m_Mesh, t_PreFH))
@@ -125,7 +125,7 @@ std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const
         }
 
         t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, t_Commands);
-        
+
         for(auto t_NBVert : t_NBVerts)
         {
             t_VertexHandles.push_back(t_NBVert);
