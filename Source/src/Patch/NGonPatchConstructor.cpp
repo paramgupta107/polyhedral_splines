@@ -6,31 +6,31 @@
 
 Mat48x12d NGonPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "./Table/ngonSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "ngonSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 48, 12);
 }
 
 Mat80x20d NGonPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "./Table/ngonSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "ngonSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 80, 20);
 }
 
 Mat384x24d NGonPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "./Table/ngonSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "ngonSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 384, 24);
 }
 
 Mat448x28d NGonPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "./Table/ngonSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "ngonSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 448, 28);
 }
 
 Mat512x32d NGonPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "./Table/ngonSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "ngonSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 32);
 }
 
@@ -61,7 +61,7 @@ bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
     return true;
 }
 
-std::vector<Patch> NGonPatchConstructor::getPatch(const FaceHandle& a_FaceHandle)
+PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
 {
     m_FaceValence = Helper::get_num_of_verts_for_face(m_Mesh, a_FaceHandle);
 
@@ -72,23 +72,23 @@ std::vector<Patch> NGonPatchConstructor::getPatch(const FaceHandle& a_FaceHandle
     auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
 
     // Generate patch
-    Matrix t_BBcoefs;
+    Matrix t_mask;
     switch(m_FaceValence)
     {
         case 3:
-            t_BBcoefs = m_MaskSct3 * t_NBVertsMat;
+            t_mask = m_MaskSct3;
             break;
         case 5:
-            t_BBcoefs = m_MaskSct5 * t_NBVertsMat;
+            t_mask = m_MaskSct5;
             break;
         case 6:
-            t_BBcoefs = m_MaskSct6 * t_NBVertsMat;
+            t_mask = m_MaskSct6;
             break;
         case 7:
-            t_BBcoefs = m_MaskSct7 * t_NBVertsMat;
+            t_mask = m_MaskSct7;
             break;
         case 8:
-            t_BBcoefs = m_MaskSct8 * t_NBVertsMat;
+            t_mask = m_MaskSct8;
             break;
     }
 
@@ -99,7 +99,7 @@ std::vector<Patch> NGonPatchConstructor::getPatch(const FaceHandle& a_FaceHandle
         a_NumOfPatch = a_NumOfPatch * 4;
     }
 
-    return Helper::points_mat_to_patches(a_NumOfPatch, "Group 8 nGon", t_BBcoefs);
+    return PatchBuilder(t_NBVerts, t_mask, this, m_Mesh, a_NumOfPatch);
 }
 
 
@@ -134,4 +134,9 @@ std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHand
     }
 
     return t_NBVerts;
+}
+
+std::string NGonPatchConstructor::getGroupName() const
+{
+    return "Group 8 nGon";
 }

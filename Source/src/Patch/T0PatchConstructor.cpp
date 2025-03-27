@@ -6,7 +6,7 @@
 
 Mat64x14d T0PatchConstructor::getMask()
 {
-    std::string t_MaskCSVFilePathT0 = "./Table/T0.csv";
+    std::string t_MaskCSVFilePathT0 = "T0.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathT0, 64, 14); //  NumOfTotalCpts = 64, NumOfVerts = 14
 }
 
@@ -55,19 +55,14 @@ bool T0PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
     return true;
 }
 
-std::vector<Patch> T0PatchConstructor::getPatch(const FaceHandle& a_FaceHandle)
+PatchBuilder T0PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
 {
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle);
 
-    // Convert Neighbor Verts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
-
-    // Generate patch
-    auto t_BBcoefs = m_Mask * t_NBVertsMat;
 
     const int a_NumOfPatch = 4;
-    return Helper::points_mat_to_patches(a_NumOfPatch, "Group 2 T0", t_BBcoefs);
+    return PatchBuilder(t_NBVerts, m_Mask, this, m_Mesh, a_NumOfPatch);
 }
 
 
@@ -138,4 +133,9 @@ std::vector<VertexHandle> T0PatchConstructor::initNeighborVerts(const FaceHandle
     HalfedgeOperation::init_verts(m_Mesh, t_HalfedgeHandle, t_NBVerts, t_BottomVertOrder, t_BottomCommands);
 
     return t_NBVerts;
+}
+
+std::string T0PatchConstructor::getGroupName() const
+{
+    return "Group 2 T0";
 }

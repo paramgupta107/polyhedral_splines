@@ -9,37 +9,37 @@
  */
 Mat36x4d PolarPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "./Table/polarSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "polarSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 36, 4); //  NumOfTotalCpts = 60, NumOfVerts = 4
 }
 
 Mat48x5d PolarPatchConstructor::getMaskSct4()
 {
-    std::string t_MaskCSVFilePathSct4 = "./Table/polarSct4.csv";
+    std::string t_MaskCSVFilePathSct4 = "polarSct4.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct4, 48, 5);
 }
 
 Mat60x6d PolarPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "./Table/polarSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "polarSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 60, 6);
 }
 
 Mat72x7d PolarPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "./Table/polarSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "polarSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 72, 7);
 }
 
 Mat84x8d PolarPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "./Table/polarSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "polarSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 84, 8);
 }
 
 Mat96x9d PolarPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "./Table/polarSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "polarSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 96, 9);
 }
 
@@ -79,42 +79,38 @@ bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle)
 }
 
 
-std::vector<Patch> PolarPatchConstructor::getPatch(const VertexHandle& a_VertexHandle)
+PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle)
 {
     auto a_NBVertexHandles = initNeighborVerts(a_VertexHandle);
 
-    // Convert NeighborVerts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, a_NBVertexHandles);
-
     // Get mask
-    Matrix t_BBcoefs;
+    Matrix t_mask;
     switch (m_NumOfSct)
     {
         case 3:
-            t_BBcoefs = m_MaskSct3 * t_NBVertsMat;
+            t_mask = m_MaskSct3;
             break;
         case 4:
-            t_BBcoefs = m_MaskSct4 * t_NBVertsMat;
+            t_mask = m_MaskSct4;
             break;
         case 5:
-            t_BBcoefs = m_MaskSct5 * t_NBVertsMat;
+            t_mask = m_MaskSct5;
             break;
         case 6:
-            t_BBcoefs = m_MaskSct6 * t_NBVertsMat;
+            t_mask = m_MaskSct6;
             break;
         case 7:
-            t_BBcoefs = m_MaskSct7 * t_NBVertsMat;
+            t_mask = m_MaskSct7;
             break;
         case 8:
-            t_BBcoefs = m_MaskSct8 * t_NBVertsMat;
+            t_mask = m_MaskSct8;
             break;
     }
 
     const int t_DegU = 3;
     const int t_DegV = 2;
-    auto t_Patches = Helper::points_mat_to_patches(t_DegU, t_DegV, "Group 5 Polar", t_BBcoefs);
-
-    return t_Patches;
+    
+    return PatchBuilder(a_NBVertexHandles, t_mask, this, m_Mesh, t_DegU, t_DegV);
 }
 
 
@@ -140,4 +136,9 @@ std::vector<VertexHandle> PolarPatchConstructor::initNeighborVerts(const VertexH
     t_NBVertexHandles.insert(t_NBVertexHandles.begin(), a_VertexHandle); ;
 
     return t_NBVertexHandles;
+}
+
+std::string PolarPatchConstructor::getGroupName() const
+{
+    return "Group 5 Polar";
 }

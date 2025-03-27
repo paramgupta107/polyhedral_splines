@@ -26,7 +26,7 @@ public:
           m_MaskSct8(getMaskSct8()) {};
 
     bool isSamePatchType(const VertexHandle& a_VertexHandle) override;
-    std::vector<Patch> getPatch(const VertexHandle& a_VertexHandle) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle) override;
 
 private:
     const MeshType& m_Mesh;
@@ -45,4 +45,5 @@ private:
     Mat84x8d getMaskSct7();
     Mat96x9d getMaskSct8();
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
+    std::string getGroupName() const;
 };

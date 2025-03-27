@@ -15,7 +15,7 @@ public:
     RegularPatchConstructor(const MeshType& a_Mesh) : m_Mesh(a_Mesh) {};
 
     bool isSamePatchType(const VertexHandle& a_VertexHandle) override;
-    std::vector<Patch> getPatch(const VertexHandle& a_VertexHandle) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle) override;
 
     Patch getPatch(const std::vector<VertexHandle>& a_NBVertexHandles);
     Matrix getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles);
@@ -36,4 +36,5 @@ private:
 
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
 
+    std::string getGroupName() const;
 };

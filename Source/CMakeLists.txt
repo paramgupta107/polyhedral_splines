@@ -30,6 +30,8 @@ ExternalProject_Add(
     GIT_TAG db8c0608830ae7324b2b2e1d91e4db565b2d3eae
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
                -DBUILD_APPS=FALSE
+               -DBUILD_SHARED=FALSE
+               -DBUILD_STATIC=TRUE
                -DCMAKE_BUILD_TYPE=RELEASE
 )
 
@@ -41,6 +43,14 @@ link_directories(${OPENMESH_ROOT}/lib)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
 
+# Exclude main.cpp from library
+set(MAIN_SRC src/main.cpp)
+list(REMOVE_ITEM SOURCES ${MAIN_SRC})
+
+# Build static library
+add_library(PolyhedralSplinesLib STATIC ${SOURCES})
+add_dependencies(PolyhedralSplinesLib OpenMesh)
+
 ### Link OpenMesh ###
 include_directories(SYSTEM ${OPENMESH_ROOT}/include)
 target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
@@ -48,18 +58,49 @@ target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
 # OpenMesh need to be built before main program
 add_dependencies(PolyhedralSplines OpenMesh)
 
+target_link_libraries(PolyhedralSplinesLib OpenMeshCore OpenMeshTools)
 
-# Copy tables to build folder
+# ------------------------------------------------------------------------------
+# Embed table files into a generated .cpp file
+# ------------------------------------------------------------------------------
+
 set(TABLE_SRC_PATH ${CMAKE_SOURCE_DIR}/src/Patch/Table)
+file(GLOB_RECURSE TABLE_FILES "${TABLE_SRC_PATH}/*.csv")
 
-if(UNIX)
-    set(TABLE_TRG_PATH ${CMAKE_SOURCE_DIR}/../build/Table)
-elseif(WIN32)
-    set(TABLE_TRG_PATH ${CMAKE_SOURCE_DIR}/../build/Release/Table)
-endif()
+set(EMBEDDED_TABLE_CPP "${CMAKE_BINARY_DIR}/embedded_tables.cpp")
+file(WRITE "${EMBEDDED_TABLE_CPP}" "#include <unordered_map>\n#include <string>\n\n")
+file(APPEND "${EMBEDDED_TABLE_CPP}" "static std::unordered_map<std::string, const char*> g_embedded_tables = {\n")
 
-add_custom_command(
-    TARGET PolyhedralSplines
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${TABLE_SRC_PATH} ${TABLE_TRG_PATH}
-)
+foreach(TABLE_FILE ${TABLE_FILES})
+    get_filename_component(FILENAME ${TABLE_FILE} NAME)
+    file(READ ${TABLE_FILE} FILE_CONTENTS)
+
+    # Escape backslashes, quotes, and newlines
+    string(REPLACE "\\" "\\\\" FILE_CONTENTS "${FILE_CONTENTS}")
+    string(REPLACE "\"" "\\\"" FILE_CONTENTS "${FILE_CONTENTS}")
+    string(REPLACE "\n" "\\n\"\n\"" FILE_CONTENTS "${FILE_CONTENTS}")
+
+    file(APPEND "${EMBEDDED_TABLE_CPP}" "  { \"${FILENAME}\", \"${FILE_CONTENTS}\" },\n")
+endforeach()
+
+file(APPEND "${EMBEDDED_TABLE_CPP}" "};\n\n")
+file(APPEND "${EMBEDDED_TABLE_CPP}" "const std::unordered_map<std::string, const char*>& get_embedded_tables() {\n")
+file(APPEND "${EMBEDDED_TABLE_CPP}" "  return g_embedded_tables;\n}\n")
+
+add_custom_target(EmbedTables DEPENDS "${EMBEDDED_TABLE_CPP}")
+add_dependencies(PolyhedralSplines EmbedTables)
+add_dependencies(PolyhedralSplinesLib EmbedTables)
+target_sources(PolyhedralSplinesLib PRIVATE "${EMBEDDED_TABLE_CPP}")
+target_sources(PolyhedralSplines PRIVATE "${EMBEDDED_TABLE_CPP}")
+
+# ------------------------------------------------------------------------------
+# Install headers and lib
+# ------------------------------------------------------------------------------
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/PolyhedralSplines
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp")
+
+install(TARGETS PolyhedralSplinesLib
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)

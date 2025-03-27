@@ -6,7 +6,7 @@
 
 Mat128x18d T1PatchConstructor::getMask()
 {
-    std::string t_MaskCSVFilePathT1 = "./Table/T1.csv";
+    std::string t_MaskCSVFilePathT1 = "T1.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathT1, 128, 18); //  NumOfTotalCpts = 128, NumOfVerts = 18
 }
 
@@ -68,19 +68,13 @@ bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle)
 }
 
 
-std::vector<Patch> T1PatchConstructor::getPatch(const FaceHandle& a_FaceHandle)
+PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
 {
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle);
 
-    // Convert Neighbor Verts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
-
-    // Generate patch
-    auto t_BBcoefs = m_Mask * t_NBVertsMat;
-
     const int a_NumOfPatch = 8;
-    return Helper::points_mat_to_patches(a_NumOfPatch, "Group 3 T1", t_BBcoefs);
+    return PatchBuilder(t_NBVerts, m_Mask, this, m_Mesh, a_NumOfPatch);
 }
 
 
@@ -141,4 +135,9 @@ std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle
     HalfedgeOperation::init_verts(m_Mesh, t_CurrentHef, t_NBVerts, t_GetVertOrder, t_CornerOperation);
 
     return t_NBVerts;
+}
+
+std::string T1PatchConstructor::getGroupName() const
+{
+    return "Group 3 T1";
 }

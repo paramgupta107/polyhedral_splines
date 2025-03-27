@@ -3,7 +3,7 @@
 #pragma once
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
-#include "Patch.hpp"
+#include "PatchBuilder.hpp"
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 typedef MeshType::VertexHandle VertexHandle;
@@ -14,6 +14,9 @@ class PatchConstructor
 public:
     virtual bool isSamePatchType(const VertexHandle&) { return false; };
     virtual bool isSamePatchType(const FaceHandle&) { return false; };
-    virtual std::vector<Patch> getPatch(const VertexHandle&) { return {}; };
-    virtual std::vector<Patch> getPatch(const FaceHandle&) { return {}; };
+    virtual PatchBuilder getPatchBuilder(const VertexHandle&){throw std::runtime_error("getPatchBuilder for VertexHandle not implemented");};
+    virtual PatchBuilder getPatchBuilder(const FaceHandle&){throw std::runtime_error("getPatchBuilder for FaceHandle not implemented");};
+    virtual std::string getGroupName() const = 0;
+private:
+    
 };

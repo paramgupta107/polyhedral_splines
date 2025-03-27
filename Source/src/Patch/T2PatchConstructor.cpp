@@ -6,7 +6,7 @@
 
 Mat256x20d T2PatchConstructor::getMask()
 {
-    std::string t_MaskCSVFilePathT2 = "./Table/T2.csv";
+    std::string t_MaskCSVFilePathT2 = "T2.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathT2, 256, 20); //  NumOfTotalCpts = 256, NumOfVerts = 20
 }
 
@@ -79,19 +79,13 @@ bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
 
 
 
-std::vector<Patch> T2PatchConstructor::getPatch(const FaceHandle& a_FaceHandle)
+PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
 {
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle);
 
-    // Convert Neighbor Verts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
-
-    // Generate patch
-    auto t_BBcoefs = m_Mask * t_NBVertsMat;
-
     const int a_NumOfPatch = 16;
-    return Helper::points_mat_to_patches(a_NumOfPatch, "Group 4 T2", t_BBcoefs);
+    return PatchBuilder(t_NBVerts, m_Mask, this, m_Mesh, a_NumOfPatch);
 }
 
 
@@ -163,4 +157,9 @@ std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle
 
 
     return t_NBVerts;
+}
+
+std::string T2PatchConstructor::getGroupName() const
+{
+    return "Group 4 T2";
 }

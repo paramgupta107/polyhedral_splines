@@ -50,40 +50,14 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-std::vector<Patch> RegularPatchConstructor::getPatch(const VertexHandle& a_VertHandle)
+PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle)
 {
     auto t_NBVertexHandles = initNeighborVerts(a_VertHandle);
-    std::vector<Patch> t_Patches;
-    t_Patches.push_back(getPatch(t_NBVertexHandles));
-    return t_Patches;
-}
-
-/*
- * Given neighbor verts, multiply it with mask to generate patch.
- */
-Patch RegularPatchConstructor::getPatch(const std::vector<VertexHandle>& a_NBVertexHandles)
-{
-    Matrix t_BBcoefs = getPatchMat(a_NBVertexHandles);
-
+    Matrix t_mask = m_Mask;
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return Helper::points_mat_to_patch(t_PatchDegU, t_PatchDegV, "Group 0 Regular", t_BBcoefs);
+    return PatchBuilder(t_NBVertexHandles, t_mask, this, m_Mesh, t_PatchDegU, t_PatchDegV);
 }
-
-/*
- * Given neighbor verts, multiply it with mask to generate patch in matrix form.
- */
-Matrix RegularPatchConstructor::getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles)
-{
-    //convert NeighborVerts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, a_NBVertexHandles);
-
-    // getPatch
-    auto t_BBcoefs = m_Mask * t_NBVertsMat;
-
-    return t_BBcoefs;
-}
-
 
 /*
  * Initialize (obtain) the vertices on original mesh needed for getPatch
@@ -154,4 +128,9 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
     }
 
     return t_NBVertexHandles;
+}
+
+std::string RegularPatchConstructor::getGroupName() const
+{
+    return "Group 0 Regular";
 }

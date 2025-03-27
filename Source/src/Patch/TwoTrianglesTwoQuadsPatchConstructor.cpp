@@ -52,39 +52,12 @@ bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-std::vector<Patch> TwoTrianglesTwoQuadsPatchConstructor::getPatch(const VertexHandle& a_VertHandle)
+PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle)
 {
     auto t_NBVertexHandles = initNeighborVerts(a_VertHandle);
-    std::vector<Patch> t_Patches;
-    t_Patches.push_back(getPatch(t_NBVertexHandles));
-    return t_Patches;
-}
-
-
-/*
- * Given neighbor verts, multiply it with mask to generate patch.
- */
-Patch TwoTrianglesTwoQuadsPatchConstructor::getPatch(const std::vector<VertexHandle>& a_NBVertexHandles)
-{
-    auto t_BBcoefs = getPatchMat(a_NBVertexHandles);
-
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return Helper::points_mat_to_patch(t_PatchDegU, t_PatchDegV, "Group 0 2tri2quad", t_BBcoefs);
-}
-
-/*
- * Given neighbor verts, multiply it with mask to generate patch in matrix form.
- */
-Mat9x3d TwoTrianglesTwoQuadsPatchConstructor::getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles)
-{
-    //convert NeighborVerts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, a_NBVertexHandles);
-
-    // getPatch
-    auto t_BBcoefs = m_Mask * t_NBVertsMat;
-
-    return t_BBcoefs;
+    return PatchBuilder(t_NBVertexHandles, m_Mask, this, m_Mesh, t_PatchDegU, t_PatchDegV);
 }
 
 
@@ -132,4 +105,9 @@ std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVert
     HalfedgeOperation::init_verts(m_Mesh, t_HE, t_NBVertexHandles, t_GetVertOrder, t_Command);
 
     return t_NBVertexHandles;
+}
+
+std::string TwoTrianglesTwoQuadsPatchConstructor::getGroupName() const
+{
+    return "Group 0 2tri2quad";
 }

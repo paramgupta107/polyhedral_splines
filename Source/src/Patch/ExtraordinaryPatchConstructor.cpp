@@ -6,31 +6,31 @@
 
 Mat48x7d ExtraordinaryPatchConstructor::getMaskSct3()
 {
-    std::string t_MaskCSVFilePathSct3 = "./Table/eopSct3.csv";
+    std::string t_MaskCSVFilePathSct3 = "eopSct3.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct3, 48, 7);
 }
 
 Mat80x11d ExtraordinaryPatchConstructor::getMaskSct5()
 {
-    std::string t_MaskCSVFilePathSct5 = "./Table/eopSct5.csv";
+    std::string t_MaskCSVFilePathSct5 = "eopSct5.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct5, 80, 11);
 }
 
 Mat384x13d ExtraordinaryPatchConstructor::getMaskSct6()
 {
-    std::string t_MaskCSVFilePathSct6 = "./Table/eopSct6.csv";
+    std::string t_MaskCSVFilePathSct6 = "eopSct6.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct6, 384, 13);
 }
 
 Mat448x15d ExtraordinaryPatchConstructor::getMaskSct7()
 {
-    std::string t_MaskCSVFilePathSct7 = "./Table/eopSct7.csv";
+    std::string t_MaskCSVFilePathSct7 = "eopSct7.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct7, 448, 15);
 }
 
 Mat512x17d ExtraordinaryPatchConstructor::getMaskSct8()
 {
-    std::string t_MaskCSVFilePathSct8 = "./Table/eopSct8.csv";
+    std::string t_MaskCSVFilePathSct8 = "eopSct8.csv";
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 17);
 }
 
@@ -139,7 +139,7 @@ std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const
 }
 
 
-std::vector<Patch> ExtraordinaryPatchConstructor::getPatch(const VertexHandle& a_VertexHandle)
+PatchBuilder ExtraordinaryPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle)
 {
     // Get valence of extraordinary point to determine the # of cpts
     int t_ExtrPointValence = Helper::get_vert_valence(m_Mesh, a_VertexHandle);
@@ -150,24 +150,23 @@ std::vector<Patch> ExtraordinaryPatchConstructor::getPatch(const VertexHandle& a
     // Convert neighbor verts to matrix type
     auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
 
-    // multiply CC points with mask to generate patches
-    Matrix t_BBcoefs;
+    Matrix t_mask;
     switch(t_ExtrPointValence)
     {
         case 3:
-            t_BBcoefs = m_MaskSct3 * t_NBVertsMat;
+            t_mask = m_MaskSct3;
             break;
         case 5:
-            t_BBcoefs = m_MaskSct5 * t_NBVertsMat;
+            t_mask = m_MaskSct5;
             break;
         case 6:
-            t_BBcoefs = m_MaskSct6 * t_NBVertsMat;
+            t_mask = m_MaskSct6;
             break;
         case 7:
-            t_BBcoefs = m_MaskSct7 * t_NBVertsMat;
+            t_mask = m_MaskSct7;
             break;
         case 8:
-            t_BBcoefs = m_MaskSct8 * t_NBVertsMat;
+            t_mask = m_MaskSct8;
             break;
     }
 
@@ -178,6 +177,10 @@ std::vector<Patch> ExtraordinaryPatchConstructor::getPatch(const VertexHandle& a
     }
 
 
-    // Save control points into Patch
-    return Helper::points_mat_to_patches(t_NumOfPatches, "Group 1 ExtraordinaryPoint", t_BBcoefs);
+    return PatchBuilder(t_NBVerts, t_mask, this, m_Mesh, t_NumOfPatches);
+}
+
+std::string ExtraordinaryPatchConstructor::getGroupName() const
+{
+    return "Group 1 ExtraordinaryPoint";
 }

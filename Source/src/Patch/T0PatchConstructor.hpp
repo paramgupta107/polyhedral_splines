@@ -15,7 +15,7 @@ public:
         : m_Mesh(a_Mesh), m_Mask(getMask()) {};
 
     bool isSamePatchType(const FaceHandle& a_FaceHandle) override;
-    std::vector<Patch> getPatch(const FaceHandle& a_FaceHandle) override;
+    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle) override;
 
 private:
     const MeshType& m_Mesh;
@@ -24,4 +24,5 @@ private:
     Mat64x14d getMask();
     std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
 
+    std::string getGroupName() const;
 };
