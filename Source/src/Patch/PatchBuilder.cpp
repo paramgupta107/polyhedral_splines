@@ -3,8 +3,14 @@
 #include "PatchBuilder.hpp"
 #include "PatchConstructor.hpp"
 
-std::vector<Patch> PatchBuilder::buildPatches(){
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, m_NBVertexHandles);
+std::vector<VertexHandle> PatchBuilder::getNeighborVerts() const { return m_NBVertexHandles; }
+
+Matrix PatchBuilder::getMask() const { return m_Mask; }
+
+const PatchConstructor* PatchBuilder::getPatchConstructor() const { return m_PatchConstructor; }
+
+std::vector<Patch> PatchBuilder::buildPatches(const MeshType& a_Mesh) const{
+    auto t_NBVertsMat = Helper::verthandles_to_points_mat(a_Mesh, m_NBVertexHandles);
     auto t_BBcoefs = m_Mask * t_NBVertsMat;
     if (m_NumOfPatches > 0) {
         return Helper::points_mat_to_patches(m_NumOfPatches, m_PatchConstructor->getGroupName(), t_BBcoefs);

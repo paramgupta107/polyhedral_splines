@@ -12,16 +12,15 @@ typedef Matrix Mat9x9d;
 class RegularPatchConstructor : public PatchConstructor
 {
 public:
-    RegularPatchConstructor(const MeshType& a_Mesh) : m_Mesh(a_Mesh) {};
+    RegularPatchConstructor() {};
 
-    bool isSamePatchType(const VertexHandle& a_VertexHandle) override;
-    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle) override;
+    bool isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
 
-    Patch getPatch(const std::vector<VertexHandle>& a_NBVertexHandles);
-    Matrix getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles);
+    Patch getPatch(const std::vector<VertexHandle>& a_NBVertexHandles, const MeshType& a_Mesh);
+    Matrix getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles, const MeshType& a_Mesh);
 
 private:
-    const MeshType& m_Mesh;
     const Mat9x9d m_Mask = Matrix({
         {0.25, 0.25, 0, 0.25, 0.25, 0, 0, 0, 0},
         {0, 0.5, 0, 0, 0.5, 0, 0, 0, 0},
@@ -34,7 +33,7 @@ private:
         {0, 0, 0, 0, 0.25, 0.25, 0, 0.25, 0.25}
     });
 
-    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
+    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

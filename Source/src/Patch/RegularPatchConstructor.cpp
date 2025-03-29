@@ -6,17 +6,17 @@
 /*
  * Check if the current face (facehandle) and its neighbors match the Regular structure
  */
-bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
+bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
     // Check if the vertex four valence
-    if(!Helper::is_vert_4_valence(m_Mesh, a_VertHandle))
+    if(!Helper::is_vert_4_valence(a_Mesh, a_VertHandle))
     {
         return false;
     }
 
     // The surrounding faces should be either quad or triangle and no more than two
     // consecutive triangles.
-    auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
+    auto t_FHs = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertHandle);
     if(t_FHs.size() != 4)
     {
         return false;
@@ -24,16 +24,16 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
     int t_Tri_Count = 0;
     for(int i=0; i<t_FHs.size(); i++)
     {
-        if(!Helper::is_triangle(m_Mesh, t_FHs[i]) && !Helper::is_quad(m_Mesh, t_FHs[i]))
+        if(!Helper::is_triangle(a_Mesh, t_FHs[i]) && !Helper::is_quad(a_Mesh, t_FHs[i]))
         {
             return false;
         }
 
-        if(Helper::is_triangle(m_Mesh, t_FHs[i]))
+        if(Helper::is_triangle(a_Mesh, t_FHs[i]))
         {
             t_Tri_Count++;
-            if(!Helper::is_triangle(m_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
-                !Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()])){
+            if(!Helper::is_triangle(a_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
+                !Helper::is_triangle(a_Mesh, t_FHs[(i+1)%t_FHs.size()])){
                 return false;
                 }
         }
@@ -50,19 +50,19 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle)
+PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
-    auto t_NBVertexHandles = initNeighborVerts(a_VertHandle);
+    auto t_NBVertexHandles = initNeighborVerts(a_VertHandle, a_Mesh);
     Matrix t_mask = m_Mask;
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return PatchBuilder(t_NBVertexHandles, t_mask, this, m_Mesh, t_PatchDegU, t_PatchDegV);
+    return PatchBuilder(t_NBVertexHandles, t_mask, this, t_PatchDegU, t_PatchDegV);
 }
 
 /*
  * Initialize (obtain) the vertices on original mesh needed for getPatch
  */
-std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle)
+std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
     // Init m_NeighborVerts with 9 default vertexhandle
     const int t_NumOfVerts = 9;
@@ -73,7 +73,7 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
     t_NBVertexHandles[4] = a_VertHandle;
 
     // Get the halfedge belonds to current face
-    auto t_CurrentHef = m_Mesh.halfedge_handle(a_VertHandle);
+    auto t_CurrentHef = a_Mesh.halfedge_handle(a_VertHandle);
 
     /* Using halfedge operation to get value for each neighbors
      * Operations: 1=next 2=previous 3=opposite 4=get
@@ -88,22 +88,22 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
     // // Operation for one wing
     // std::vector<int> t_WingOperation{1,4,1,4,1,3};
 
-    // HalfedgeOperation::init_verts(m_Mesh, t_CurrentHef, t_NBVertexHandles, t_GetVertOrder, t_WingOperation);
+    // HalfedgeOperation::init_verts(a_Mesh, t_CurrentHef, t_NBVertexHandles, t_GetVertOrder, t_WingOperation);
     int i = 0;
     std::vector<VertexHandle> t_NBVerts;
-    for(auto t_VHIt = m_Mesh.cvoh_ccwiter(a_VertHandle); t_VHIt.is_valid(); ++t_VHIt)
+    for(auto t_VHIt = a_Mesh.cvoh_ccwiter(a_VertHandle); t_VHIt.is_valid(); ++t_VHIt)
     {
-        auto t_CurrFH = m_Mesh.face_handle(*t_VHIt);
+        auto t_CurrFH = a_Mesh.face_handle(*t_VHIt);
         std::vector<int> t_Commands;
-        if(Helper::is_quad(m_Mesh, t_CurrFH))
+        if(Helper::is_quad(a_Mesh, t_CurrFH))
         {
             t_Commands = {1,4,1,4};
         }
-        else if(Helper::is_triangle(m_Mesh, t_CurrFH))
+        else if(Helper::is_triangle(a_Mesh, t_CurrFH))
         {
-            auto t_OppositeHE = m_Mesh.opposite_halfedge_handle(*t_VHIt);
-            auto t_PreFH = m_Mesh.face_handle(t_OppositeHE);
-            if(Helper::is_quad(m_Mesh, t_PreFH))
+            auto t_OppositeHE = a_Mesh.opposite_halfedge_handle(*t_VHIt);
+            auto t_PreFH = a_Mesh.face_handle(t_OppositeHE);
+            if(Helper::is_quad(a_Mesh, t_PreFH))
             {
                 t_Commands = {1,4,1,4};
             }
@@ -118,7 +118,7 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
             assert(false);
         }
 
-        t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(m_Mesh, *t_VHIt, t_Commands);
+        t_NBVerts = HalfedgeOperation::get_verts_fixed_halfedge(a_Mesh, *t_VHIt, t_Commands);
 
         for(auto t_NBVert : t_NBVerts)
         {

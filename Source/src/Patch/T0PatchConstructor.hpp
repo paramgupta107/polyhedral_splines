@@ -11,18 +11,17 @@ typedef Matrix Mat64x14d;
 class T0PatchConstructor : public PatchConstructor
 {
 public:
-    T0PatchConstructor(const MeshType& a_Mesh)
-        : m_Mesh(a_Mesh), m_Mask(getMask()) {};
+    T0PatchConstructor()
+        : m_Mask(getMask()) {};
 
-    bool isSamePatchType(const FaceHandle& a_FaceHandle) override;
-    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle) override;
+    bool isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
 
 private:
-    const MeshType& m_Mesh;
     const Mat64x14d m_Mask;
 
     Mat64x14d getMask();
-    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
+    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

@@ -10,29 +10,29 @@ Mat128x18d T1PatchConstructor::getMask()
     return read_csv_as_matrix(t_MaskCSVFilePathT1, 128, 18); //  NumOfTotalCpts = 128, NumOfVerts = 18
 }
 
-bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
+bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Check is the face a Pentagon
-    if(!Helper::is_pentagon(m_Mesh, a_FaceHandle))
+    if(!Helper::is_pentagon(a_Mesh, a_FaceHandle))
     {
         return false;
     }
 
     // Check Pentagon has 4 4D verts and only 1 3D vert
-    if(!isPentagonTjunction(a_FaceHandle))
+    if(!isPentagonTjunction(a_FaceHandle, a_Mesh))
     {
         return false;
     }
 
     // Check there are 9 neighbor faces around the pentagon
-    auto t_FirstLayerFaces = Helper::init_neighbor_faces(m_Mesh, a_FaceHandle);
+    auto t_FirstLayerFaces = Helper::init_neighbor_faces(a_Mesh, a_FaceHandle);
     if(!Helper::has_9_neighbor_faces(t_FirstLayerFaces))
     {
         return false;
     }
 
     // Check whether neighbor faces are all quad
-    if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FirstLayerFaces))
     {
         return false;
     }
@@ -46,19 +46,19 @@ bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
 /*
  * Check if the pentagon only has one tjunction
  */
-bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle)
+bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     const int t_NumOf4ValenceVertsForPenTJ = 4;
     const int t_NumOf3ValenceVertsForPenTJ = 1;
     int t_NumOf4ValenceVerts = 0;
     int t_NumOf3ValenceVerts = 0;
-    for (auto t_FVIt = m_Mesh.cfv_iter(a_FaceHandle); t_FVIt.is_valid(); ++t_FVIt)
+    for (auto t_FVIt = a_Mesh.cfv_iter(a_FaceHandle); t_FVIt.is_valid(); ++t_FVIt)
     {
-        if (Helper::is_vert_4_valence(m_Mesh, *t_FVIt))
+        if (Helper::is_vert_4_valence(a_Mesh, *t_FVIt))
         {
             t_NumOf4ValenceVerts++;
         }
-        else if (Helper::is_vert_3_valence(m_Mesh, *t_FVIt))
+        else if (Helper::is_vert_3_valence(a_Mesh, *t_FVIt))
         {
             t_NumOf3ValenceVerts++;
         }
@@ -68,13 +68,13 @@ bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle)
 }
 
 
-PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
+PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Get neighbor verts
-    auto t_NBVerts = initNeighborVerts(a_FaceHandle);
+    auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     const int a_NumOfPatch = 8;
-    return PatchBuilder(t_NBVerts, m_Mask, this, m_Mesh, a_NumOfPatch);
+    return PatchBuilder(t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
 
@@ -88,7 +88,7 @@ PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
  *    |   |   |   |   |
  *   13 -14 -15- 16 - 17
  */
-std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle)
+std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 18;
@@ -96,12 +96,12 @@ std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle
     Helper::set_vert_vector_to_default(t_NumOfVerts, t_NBVerts);
 
     // Find 10 11 6 5 9  **Verts from getVertsOfFace are in clockwise order
-    auto t_PenVerts = Helper::get_verts_of_face(m_Mesh, a_FaceHandle);
+    auto t_PenVerts = Helper::get_verts_of_face(a_Mesh, a_FaceHandle);
     std::vector<int> t_PenVertOrder{10, 9, 5, 6, 11};
     while(true)
     {
         //rotate penverts until its first element is 3D vert
-        if(Helper::is_vert_3_valence(m_Mesh, t_PenVerts[0]))
+        if(Helper::is_vert_3_valence(a_Mesh, t_PenVerts[0]))
         {
             break;
         }
@@ -114,10 +114,10 @@ std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle
 
     // Find 15 and the halfedge (10->15)
     MeshType::HalfedgeHandle t_CurrentHef;
-    for(auto t_VHIt = m_Mesh.cvoh_iter(t_NBVerts[10]); t_VHIt.is_valid(); ++t_VHIt)
+    for(auto t_VHIt = a_Mesh.cvoh_iter(t_NBVerts[10]); t_VHIt.is_valid(); ++t_VHIt)
     {
-        auto t_NextHalfedge = m_Mesh.next_halfedge_handle(*t_VHIt);
-        auto t_Vert = m_Mesh.from_vertex_handle(t_NextHalfedge);
+        auto t_NextHalfedge = a_Mesh.next_halfedge_handle(*t_VHIt);
+        auto t_Vert = a_Mesh.from_vertex_handle(t_NextHalfedge);
         bool t_IsVertNotInPen = std::find(t_PenVerts.begin(), t_PenVerts.end(), t_Vert) != t_PenVerts.end();
         if(!t_IsVertNotInPen)
         {
@@ -132,7 +132,7 @@ std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle
     // Operation for one corner. Operations: 1=next 2=previous 3=opposite 4=get
     std::vector<int> t_CornerOperation{1, 1, 4, 3, 1, 1, 4, 1, 4, 3};
 
-    HalfedgeOperation::init_verts(m_Mesh, t_CurrentHef, t_NBVerts, t_GetVertOrder, t_CornerOperation);
+    HalfedgeOperation::init_verts(a_Mesh, t_CurrentHef, t_NBVerts, t_GetVertOrder, t_CornerOperation);
 
     return t_NBVerts;
 }

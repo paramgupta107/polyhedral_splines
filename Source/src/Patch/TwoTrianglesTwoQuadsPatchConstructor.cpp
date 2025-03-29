@@ -6,16 +6,16 @@
 /*
  * Check if the current face (facehandle) and its neighbors match the Regular structure
  */
-bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
+bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
     // Check if the vertex four valence
-    if(!Helper::is_vert_4_valence(m_Mesh, a_VertHandle))
+    if(!Helper::is_vert_4_valence(a_Mesh, a_VertHandle))
     {
         return false;
     }
 
     // Get faces around the vert
-    auto t_NBFaceHandles = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
+    auto t_NBFaceHandles = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertHandle);
 
     // Check if there are four faces around the vertex
     const int t_NumOfFacesForRegCase = 4;
@@ -25,19 +25,19 @@ bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a
     }
 
     // Check whether there are two quads and two triangles
-    if(Helper::num_of_quads(m_Mesh, t_NBFaceHandles)!=2)
+    if(Helper::num_of_quads(a_Mesh, t_NBFaceHandles)!=2)
     {
         return false;
     }
 
-    if(Helper::num_of_triangles(m_Mesh, t_NBFaceHandles)!=2)
+    if(Helper::num_of_triangles(a_Mesh, t_NBFaceHandles)!=2)
     {
         return false;
     }
 
     //make sure two trangles and two quads are connected.
-    bool t_IsPreFaceTriagnle = Helper::is_triangle(m_Mesh, t_NBFaceHandles[0]);
-    bool t_IsNextFaceTriagnle = Helper::is_triangle(m_Mesh, t_NBFaceHandles[2]);
+    bool t_IsPreFaceTriagnle = Helper::is_triangle(a_Mesh, t_NBFaceHandles[0]);
+    bool t_IsNextFaceTriagnle = Helper::is_triangle(a_Mesh, t_NBFaceHandles[2]);
     if(t_IsPreFaceTriagnle == t_IsNextFaceTriagnle)
     {
         return false;
@@ -52,12 +52,12 @@ bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle)
+PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
-    auto t_NBVertexHandles = initNeighborVerts(a_VertHandle);
+    auto t_NBVertexHandles = initNeighborVerts(a_VertHandle, a_Mesh);
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return PatchBuilder(t_NBVertexHandles, m_Mask, this, m_Mesh, t_PatchDegU, t_PatchDegV);
+    return PatchBuilder(t_NBVertexHandles, m_Mask, this, t_PatchDegU, t_PatchDegV);
 }
 
 
@@ -72,7 +72,7 @@ PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexH
  *               \ |     |
  *                 7 --- 8
  */
-std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle)
+std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
 {
     // Init m_NeighborVerts with 9 default vertexhandle
     const int t_NumOfVerts = 9;
@@ -81,12 +81,12 @@ std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVert
 
     // Get halfedge 4->5
     HalfedgeHandle t_HE;
-    for(auto VHIt=m_Mesh.cvoh_ccwiter(a_VertHandle); VHIt.is_valid(); ++VHIt)
+    for(auto VHIt=a_Mesh.cvoh_ccwiter(a_VertHandle); VHIt.is_valid(); ++VHIt)
     {
         // 4->5 halfedge has two adj faces
-        auto t_PreFace = m_Mesh.face_handle(*VHIt);
-        auto t_CurrentFace = m_Mesh.face_handle(m_Mesh.opposite_halfedge_handle(*VHIt));
-        if(Helper::is_quad(m_Mesh, t_PreFace) && Helper::is_quad(m_Mesh, t_CurrentFace))
+        auto t_PreFace = a_Mesh.face_handle(*VHIt);
+        auto t_CurrentFace = a_Mesh.face_handle(a_Mesh.opposite_halfedge_handle(*VHIt));
+        if(Helper::is_quad(a_Mesh, t_PreFace) && Helper::is_quad(a_Mesh, t_CurrentFace))
         {
             t_HE = *VHIt;
         }
@@ -102,7 +102,7 @@ std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVert
     std::vector<int> t_GetVertOrder{4,5,2,1,0,3,6,7,8};
     std::vector<int> t_Command = {4,1,4,1,4,1,4,3,1,1,4,4,3,1,4,1,4,3,1,1,4};
 
-    HalfedgeOperation::init_verts(m_Mesh, t_HE, t_NBVertexHandles, t_GetVertOrder, t_Command);
+    HalfedgeOperation::init_verts(a_Mesh, t_HE, t_NBVertexHandles, t_GetVertOrder, t_Command);
 
     return t_NBVertexHandles;
 }

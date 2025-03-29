@@ -15,20 +15,18 @@ typedef Matrix Mat512x17d;
 class ExtraordinaryPatchConstructor : public PatchConstructor
 {
 public:
-    ExtraordinaryPatchConstructor(const MeshType& a_Mesh)
-        : m_Mesh(a_Mesh),
-          m_MaskSct3(getMaskSct3()),
+    ExtraordinaryPatchConstructor()
+        : m_MaskSct3(getMaskSct3()),
           m_MaskSct5(getMaskSct5()),
           m_MaskSct6(getMaskSct6()),
           m_MaskSct7(getMaskSct7()),
           m_MaskSct8(getMaskSct8()) {};
 
-    bool isSamePatchType(const VertexHandle& a_VertexHandle) override;
-    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle) override;
+    bool isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
     std::string getGroupName() const;
 
 private:
-    const MeshType& m_Mesh;
     const Mat48x7d m_MaskSct3;
     const Mat80x11d m_MaskSct5;
     const Mat384x13d m_MaskSct6;
@@ -41,5 +39,5 @@ private:
     Mat448x15d getMaskSct7();
     Mat512x17d getMaskSct8();
 
-    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
+    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh);
 };

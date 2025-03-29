@@ -11,18 +11,17 @@ typedef Matrix Mat256x20d;
 class T2PatchConstructor : public PatchConstructor
 {
 public:
-    T2PatchConstructor(const MeshType& a_Mesh)
-        : m_Mesh(a_Mesh), m_Mask(getMask()) {};
+    T2PatchConstructor()
+        : m_Mask(getMask()) {};
 
-    bool isSamePatchType(const FaceHandle& a_FaceHandle) override;
-    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle) override;
+    bool isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
 
 private:
-    const MeshType& m_Mesh;
     const Mat256x20d m_Mask;
 
     Mat256x20d getMask();
-    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
+    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

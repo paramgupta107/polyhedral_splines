@@ -25,22 +25,22 @@ Mat256x20d T2PatchConstructor::getMask()
  *   15 - 16 - 17 - 18 - 19
  *
  */
-bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
+bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Check if there are 6 vertices of face
-    if(!Helper::is_hexagon(m_Mesh, a_FaceHandle))
+    if(!Helper::is_hexagon(a_Mesh, a_FaceHandle))
     {
         return false;
     }
 
     // Get vert 13 6 5 9 11 12 and store them to vector
-    auto t_VertsAroundFace = Helper::get_verts_of_face(m_Mesh, a_FaceHandle);
+    auto t_VertsAroundFace = Helper::get_verts_of_face(a_Mesh, a_FaceHandle);
 
     // Get valence of surounding vertices
     std::vector<int> t_ValencesOfVerts;
     for(auto t_Vert : t_VertsAroundFace)
     {
-        t_ValencesOfVerts.push_back(Helper::get_vert_valence(m_Mesh, t_Vert));
+        t_ValencesOfVerts.push_back(Helper::get_vert_valence(a_Mesh, t_Vert));
     }
 
     // Rotate vector untill the first element is 3
@@ -64,10 +64,10 @@ bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
     }
 
     // Get surrounding faces
-    auto t_FacesAroundFace = Helper::init_neighbor_faces(m_Mesh, a_FaceHandle);
+    auto t_FacesAroundFace = Helper::init_neighbor_faces(a_Mesh, a_FaceHandle);
 
     // Check 10 surrounding faces are all quad.
-    if(!Helper::are_faces_all_quads(m_Mesh, t_FacesAroundFace))
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FacesAroundFace))
     {
         return false;
     }
@@ -79,19 +79,19 @@ bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
 
 
 
-PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
+PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Get neighbor verts
-    auto t_NBVerts = initNeighborVerts(a_FaceHandle);
+    auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     const int a_NumOfPatch = 16;
-    return PatchBuilder(t_NBVerts, m_Mask, this, m_Mesh, a_NumOfPatch);
+    return PatchBuilder(t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
 
 
 
-std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle)
+std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 20;
@@ -99,13 +99,13 @@ std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle
     Helper::set_vert_vector_to_default(t_NumOfVerts, t_NBVerts);
 
     // Find 9 11 12 13 6 5
-    auto t_HexVerts = Helper::get_verts_of_face(m_Mesh, a_FaceHandle);
+    auto t_HexVerts = Helper::get_verts_of_face(a_Mesh, a_FaceHandle);
 
     // Rotate verts of faces untill the order match t_HexVertOrder
     for(int i=0; i<t_HexVerts.size(); i++)
     {
-        bool t_IsCurrentVert3Valence = Helper::is_vert_3_valence(m_Mesh, t_HexVerts[0]);
-        bool t_IsNextSecondVert3Valence = Helper::is_vert_3_valence(m_Mesh, t_HexVerts[2]);
+        bool t_IsCurrentVert3Valence = Helper::is_vert_3_valence(a_Mesh, t_HexVerts[0]);
+        bool t_IsNextSecondVert3Valence = Helper::is_vert_3_valence(a_Mesh, t_HexVerts[2]);
         if(t_IsCurrentVert3Valence && t_IsNextSecondVert3Valence)
         {
             break;
@@ -123,10 +123,10 @@ std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle
 
     // Get the halfedge pointing 6 -> 5
     HalfedgeHandle t_HEHandle;
-    for(auto FHIt=m_Mesh.cfh_ccwiter(a_FaceHandle); FHIt.is_valid(); ++FHIt)
+    for(auto FHIt=a_Mesh.cfh_ccwiter(a_FaceHandle); FHIt.is_valid(); ++FHIt)
     {
         // Get starting point of halfedge (6)
-        auto t_StartPointOfHalfedge = m_Mesh.from_vertex_handle(*FHIt);
+        auto t_StartPointOfHalfedge = a_Mesh.from_vertex_handle(*FHIt);
         if(t_StartPointOfHalfedge==t_NBVerts[6])
         {
             t_HEHandle = *FHIt;
@@ -135,7 +135,7 @@ std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle
     }
 
     // Move halfedge from 6->5 to 5->1
-    HalfedgeOperation::get_vert(m_Mesh, t_HEHandle, {3,2,3});
+    HalfedgeOperation::get_vert(a_Mesh, t_HEHandle, {3,2,3});
 
     std::vector<std::vector<int>> t_GetVertOrder = {{1,0},{4},{8},{10,15},{16},{17},{18,19},{14},{7,3},{2}};
     for(int i=0; i<t_GetVertOrder.size(); i++)
@@ -143,13 +143,13 @@ std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle
         // Pair (2 verts) = corner
         if(t_GetVertOrder[i].size()==2)
         {
-            auto t_PairVerts = HalfedgeOperation::get_verts(m_Mesh, t_HEHandle, {1,4,1,4,1,3});
+            auto t_PairVerts = HalfedgeOperation::get_verts(a_Mesh, t_HEHandle, {1,4,1,4,1,3});
             t_NBVerts[t_GetVertOrder[i][0]] = t_PairVerts[0];
             t_NBVerts[t_GetVertOrder[i][1]] = t_PairVerts[1];
         }
         else
         {
-            auto t_Vert = HalfedgeOperation::get_vert(m_Mesh, t_HEHandle, {1,4,1,3});
+            auto t_Vert = HalfedgeOperation::get_vert(a_Mesh, t_HEHandle, {1,4,1,3});
             t_NBVerts[t_GetVertOrder[i][0]] = t_Vert;
         }
     }

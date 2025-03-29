@@ -44,10 +44,10 @@ Mat96x9d PolarPatchConstructor::getMaskSct8()
 }
 
 
-bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle)
+bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
 {
     // Polar point should be 3 to 8 valence
-    int t_Valence = Helper::get_vert_valence(m_Mesh, a_VertexHandle);
+    int t_Valence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
     const int t_Lowerbound = 3;
     const int t_Upperbound = 8;
     if(t_Valence < t_Lowerbound || t_Valence > t_Upperbound)
@@ -56,16 +56,16 @@ bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle)
     }
 
     // Polar point should not be on the boundary
-    if(m_Mesh.is_boundary(a_VertexHandle))
+    if(a_Mesh.is_boundary(a_VertexHandle))
     {
         return false;
     }
 
     // The first layer of surrounded faces should all be triangles
-    auto t_NBFaces = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertexHandle);
+    auto t_NBFaces = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
     for(auto t_Face : t_NBFaces)
     {
-        if(!Helper::is_triangle(m_Mesh, t_Face))
+        if(!Helper::is_triangle(a_Mesh, t_Face))
         {
             return false;
         }
@@ -79,9 +79,9 @@ bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle)
 }
 
 
-PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle)
+PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
 {
-    auto a_NBVertexHandles = initNeighborVerts(a_VertexHandle);
+    auto a_NBVertexHandles = initNeighborVerts(a_VertexHandle, a_Mesh);
 
     // Get mask
     Matrix t_mask;
@@ -110,7 +110,7 @@ PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_Vertex
     const int t_DegU = 3;
     const int t_DegV = 2;
     
-    return PatchBuilder(a_NBVertexHandles, t_mask, this, m_Mesh, t_DegU, t_DegV);
+    return PatchBuilder(a_NBVertexHandles, t_mask, this, t_DegU, t_DegV);
 }
 
 
@@ -121,15 +121,15 @@ PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_Vertex
  *      | /  \ |
  *     P2 ---- P3
  */
-std::vector<VertexHandle> PolarPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle)
+std::vector<VertexHandle> PolarPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
 {
     // init vector to stroe all vertices
     std::vector<VertexHandle> t_NBVertexHandles;
 
     // Get first layer vetices  ex: for 4sct, P1 -> P2 -> P3 -> P4
-    for(auto VHIt=m_Mesh.cvoh_ccwiter(a_VertexHandle); VHIt.is_valid(); ++VHIt)
+    for(auto VHIt=a_Mesh.cvoh_ccwiter(a_VertexHandle); VHIt.is_valid(); ++VHIt)
     {
-        t_NBVertexHandles.push_back(HalfedgeOperation::get_vert_fixed_halfedge(m_Mesh, *VHIt, {1,4}));
+        t_NBVertexHandles.push_back(HalfedgeOperation::get_vert_fixed_halfedge(a_Mesh, *VHIt, {1,4}));
     }
 
     // Insert the central point P0

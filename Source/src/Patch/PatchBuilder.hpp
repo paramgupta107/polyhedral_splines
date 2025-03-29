@@ -13,25 +13,25 @@ class PatchConstructor; // forward declaration
 
 class PatchBuilder
 {
-    private:
-        const std::vector<VertexHandle> m_NBVertexHandles;
-        const Matrix m_Mask;
+    public:
+        std::vector<VertexHandle> m_NBVertexHandles;
+        Matrix m_Mask;
         PatchConstructor *m_PatchConstructor;
-        const MeshType& m_Mesh;
 
         // need either m_NumOfPatches or m_DegU and m_DegV to be set
-        const int m_NumOfPatches = -1;
-        const int m_DegU = -1;
-        const int m_DegV = -1;
+        int m_NumOfPatches = -1;
+        int m_DegU = -1;
+        int m_DegV = -1;
 
 
-    public:
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, const MeshType& a_Mesh, int a_NumOfPatches)
-            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_Mesh(a_Mesh), m_NumOfPatches(a_NumOfPatches) {};
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, const MeshType& a_Mesh, int a_DegU, int a_DegV)
-            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_Mesh(a_Mesh), m_DegU(a_DegU), m_DegV(a_DegV) {};
-        std::vector<Patch> buildPatches();
-        std::vector<VertexHandle> getNeighborVerts() const { return m_NBVertexHandles; }
-        Matrix getMask() const { return m_Mask; }
-        const PatchConstructor* getPatchConstructor() const { return m_PatchConstructor; }
+        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches)
+            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_NumOfPatches(a_NumOfPatches) {};
+        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV)
+            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_DegU(a_DegU), m_DegV(a_DegV) {};
+        PatchBuilder(const PatchBuilder& a_PatchBuilder)
+            : m_NBVertexHandles(a_PatchBuilder.m_NBVertexHandles), m_Mask(a_PatchBuilder.m_Mask), m_PatchConstructor(a_PatchBuilder.m_PatchConstructor), m_NumOfPatches(a_PatchBuilder.m_NumOfPatches), m_DegU(a_PatchBuilder.m_DegU), m_DegV(a_PatchBuilder.m_DegV) {};
+        std::vector<Patch> buildPatches(const MeshType& a_Mesh) const;
+        std::vector<VertexHandle> getNeighborVerts() const;
+        Matrix getMask() const;
+        const PatchConstructor* getPatchConstructor() const;
 };

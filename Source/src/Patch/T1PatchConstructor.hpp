@@ -11,19 +11,18 @@ typedef Matrix Mat128x18d;
 class T1PatchConstructor : public PatchConstructor
 {
 public:
-    T1PatchConstructor(const MeshType& a_Mesh)
-        : m_Mesh(a_Mesh), m_Mask(getMask()) {};
+    T1PatchConstructor()
+        : m_Mask(getMask()) {};
 
-    bool isSamePatchType(const FaceHandle& a_FaceHandle) override;
-    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle) override;
+    bool isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
 
 private:
-    const MeshType& m_Mesh;
     const Mat128x18d m_Mask;
 
     Mat128x18d getMask();
-    bool isPentagonTjunction(const FaceHandle& a_FaceHandle);
-    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle);
+    bool isPentagonTjunction(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh);
+    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

@@ -34,24 +34,24 @@ Mat512x32d NGonPatchConstructor::getMaskSct8()
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 32);
 }
 
-bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
+bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // The face should have 3 5 6 7 8 vertices
-    auto t_FaceValence = Helper::get_num_of_verts_for_face(m_Mesh, a_FaceHandle);
+    auto t_FaceValence = Helper::get_num_of_verts_for_face(a_Mesh, a_FaceHandle);
     if(t_FaceValence < 3 || t_FaceValence > 8 || t_FaceValence == 4)
     {
         return false;
     }
 
     // All the vertices of central face should be 4-valent
-    if(!Helper::are_verts_of_face_all_4_valence(m_Mesh, a_FaceHandle))
+    if(!Helper::are_verts_of_face_all_4_valence(a_Mesh, a_FaceHandle))
     {
         return false;
     }
 
     // All surrounded faces should be quads
-    auto t_FirstLayerFaces = Helper::init_neighbor_faces(m_Mesh, a_FaceHandle);
-    if(!Helper::are_faces_all_quads(m_Mesh, t_FirstLayerFaces))
+    auto t_FirstLayerFaces = Helper::init_neighbor_faces(a_Mesh, a_FaceHandle);
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FirstLayerFaces))
     {
         return false;
     }
@@ -61,15 +61,15 @@ bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle)
     return true;
 }
 
-PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle)
+PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
-    m_FaceValence = Helper::get_num_of_verts_for_face(m_Mesh, a_FaceHandle);
+    m_FaceValence = Helper::get_num_of_verts_for_face(a_Mesh, a_FaceHandle);
 
     // Get neighbor verts
-    auto t_NBVerts = initNeighborVerts(a_FaceHandle);
+    auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     // Convert Neighbor Verts to matrix type
-    auto t_NBVertsMat = Helper::verthandles_to_points_mat(m_Mesh, t_NBVerts);
+    auto t_NBVertsMat = Helper::verthandles_to_points_mat(a_Mesh, t_NBVerts);
 
     // Generate patch
     Matrix t_mask;
@@ -99,7 +99,7 @@ PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandl
         a_NumOfPatch = a_NumOfPatch * 4;
     }
 
-    return PatchBuilder(t_NBVerts, t_mask, this, m_Mesh, a_NumOfPatch);
+    return PatchBuilder(t_NBVerts, t_mask, this, a_NumOfPatch);
 }
 
 
@@ -113,7 +113,7 @@ PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandl
  *    |   |   |   |
  *    0 - 1 - 6 - 4
  */
-std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle)
+std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 4 * m_FaceValence;
@@ -123,12 +123,12 @@ std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHand
     // get vertices corner by corner (0 1 2 3 is a corner)
     // Get the halfedge 3->7
     int t_WingID = 0;
-    for(auto t_FHIt = m_Mesh.cfh_ccwiter(a_FaceHandle); t_FHIt.is_valid(); t_FHIt++)
+    for(auto t_FHIt = a_Mesh.cfh_ccwiter(a_FaceHandle); t_FHIt.is_valid(); t_FHIt++)
     {
         // Move halfedge to 0->1 and get vert 0 1 3 2
         int k = t_WingID * 4;
         std::vector<int> t_IDs = {3+k, 1+k, 0+k, 2+k};
-        HalfedgeOperation::init_verts_fixed_halfedge(m_Mesh, *t_FHIt, t_NBVerts, t_IDs, {3,1,4,3,4,2,4,2,4});
+        HalfedgeOperation::init_verts_fixed_halfedge(a_Mesh, *t_FHIt, t_NBVerts, t_IDs, {3,1,4,3,4,2,4,2,4});
 
         t_WingID++;
     }

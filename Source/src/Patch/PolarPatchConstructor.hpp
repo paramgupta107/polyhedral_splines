@@ -16,20 +16,18 @@ typedef Matrix Mat96x9d;
 class PolarPatchConstructor : public PatchConstructor
 {
 public:
-    PolarPatchConstructor(const MeshType& a_Mesh)
-        : m_Mesh(a_Mesh),
-          m_MaskSct3(getMaskSct3()),
+    PolarPatchConstructor()
+        : m_MaskSct3(getMaskSct3()),
           m_MaskSct4(getMaskSct4()),
           m_MaskSct5(getMaskSct5()),
           m_MaskSct6(getMaskSct6()),
           m_MaskSct7(getMaskSct7()),
           m_MaskSct8(getMaskSct8()) {};
 
-    bool isSamePatchType(const VertexHandle& a_VertexHandle) override;
-    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle) override;
+    bool isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
 
 private:
-    const MeshType& m_Mesh;
     const Mat36x4d m_MaskSct3;
     const Mat48x5d m_MaskSct4;
     const Mat60x6d m_MaskSct5;
@@ -44,6 +42,6 @@ private:
     Mat72x7d getMaskSct6();
     Mat84x8d getMaskSct7();
     Mat96x9d getMaskSct8();
-    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle);
+    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh);
     std::string getGroupName() const;
 };
