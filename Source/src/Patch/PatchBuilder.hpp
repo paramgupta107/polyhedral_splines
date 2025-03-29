@@ -30,6 +30,7 @@ class PatchBuilder
             : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_DegU(a_DegU), m_DegV(a_DegV) {};
         PatchBuilder(const PatchBuilder& a_PatchBuilder)
             : m_NBVertexHandles(a_PatchBuilder.m_NBVertexHandles), m_Mask(a_PatchBuilder.m_Mask), m_PatchConstructor(a_PatchBuilder.m_PatchConstructor), m_NumOfPatches(a_PatchBuilder.m_NumOfPatches), m_DegU(a_PatchBuilder.m_DegU), m_DegV(a_PatchBuilder.m_DegV) {};
+        PatchBuilder& operator=(const PatchBuilder& a_PatchBuilder);
         std::vector<Patch> buildPatches(const MeshType& a_Mesh) const;
         std::vector<VertexHandle> getNeighborVerts() const;
         Matrix getMask() const;

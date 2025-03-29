@@ -67,6 +67,17 @@ public:
         return t_Output;
     }
 
+    Matrix& operator=(const Matrix& a_Input)
+    {
+        if(this != &a_Input)
+        {
+            m_Rows = a_Input.getRows();
+            m_Cols = a_Input.getCols();
+            m_Mat = a_Input.m_Mat;
+        }
+        return *this;
+    }
+
 private:
     int m_Rows, m_Cols;
     MatNxNd m_Mat;

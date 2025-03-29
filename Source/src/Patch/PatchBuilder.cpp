@@ -3,6 +3,18 @@
 #include "PatchBuilder.hpp"
 #include "PatchConstructor.hpp"
 
+PatchBuilder& PatchBuilder::operator=(const PatchBuilder& a_PatchBuilder){
+    if (this != &a_PatchBuilder) {
+        m_NBVertexHandles = a_PatchBuilder.m_NBVertexHandles;
+        m_Mask = a_PatchBuilder.m_Mask;
+        m_PatchConstructor = a_PatchBuilder.m_PatchConstructor;
+        m_NumOfPatches = a_PatchBuilder.m_NumOfPatches;
+        m_DegU = a_PatchBuilder.m_DegU;
+        m_DegV = a_PatchBuilder.m_DegV;
+    }
+    return *this;
+}
+
 std::vector<VertexHandle> PatchBuilder::getNeighborVerts() const { return m_NBVertexHandles; }
 
 Matrix PatchBuilder::getMask() const { return m_Mask; }
