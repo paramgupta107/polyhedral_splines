@@ -17,6 +17,10 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
     // The surrounding faces should be either quad or triangle and no more than two
     // consecutive triangles.
     auto t_FHs = Helper::get_faces_around_vert_counterclock(m_Mesh, a_VertHandle);
+    if(t_FHs.size() != 4)
+    {
+        return false;
+    }
     int t_Tri_Count = 0;
     for(int i=0; i<t_FHs.size(); i++)
     {
@@ -135,6 +139,7 @@ std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const Verte
         }
         else
         {
+            std::cout << "Error: Not a quad or triangle face!" << std::endl;
             assert(false);
         }
 
