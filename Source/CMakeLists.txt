@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.9)
 project(PolyhedralSplines)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+
 # Required by OpenMesh
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True )
 
 # Force make to stop after first error
 if(UNIX)
@@ -30,8 +34,7 @@ ExternalProject_Add(
     GIT_TAG db8c0608830ae7324b2b2e1d91e4db565b2d3eae
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
                -DBUILD_APPS=FALSE
-               -DBUILD_SHARED=FALSE
-               -DBUILD_STATIC=TRUE
+               -DOPENMESH_BUILD_SHARED=FALSE
                -DCMAKE_BUILD_TYPE=RELEASE
 )
 
@@ -47,8 +50,13 @@ add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
 set(MAIN_SRC src/main.cpp)
 list(REMOVE_ITEM SOURCES ${MAIN_SRC})
 
-# Build static library
-add_library(PolyhedralSplinesLib STATIC ${SOURCES})
+# Build library
+if (BUILD_SHARED_LIBS)
+    add_library(PolyhedralSplinesLib SHARED ${SOURCES})
+else()
+    add_library(PolyhedralSplinesLib STATIC ${SOURCES})
+endif()
+
 add_dependencies(PolyhedralSplinesLib OpenMesh)
 
 ### Link OpenMesh ###
@@ -58,7 +66,7 @@ target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
 # OpenMesh need to be built before main program
 add_dependencies(PolyhedralSplines OpenMesh)
 
-target_link_libraries(PolyhedralSplinesLib OpenMeshCore OpenMeshTools)
+target_link_libraries(PolyhedralSplinesLib PUBLIC OpenMeshCore OpenMeshTools)
 
 # ------------------------------------------------------------------------------
 # Embed table files into a generated .cpp file
