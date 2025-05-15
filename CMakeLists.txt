@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 project(PolyhedralSplines)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
@@ -8,6 +8,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True )
+
+if(EMSCRIPTEN)
+    message(STATUS "Building for Emscripten")
+    message(STATUS "EMSCRIPTEN_ROOT: ${EMSCRIPTEN_ROOT}")
+    message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+else()
+    message(STATUS "Building for native")
+endif()
 
 # Force make to stop after first error
 if(UNIX)
@@ -37,6 +45,10 @@ ExternalProject_Add(
                -DOPENMESH_BUILD_SHARED=FALSE
                -DCMAKE_BUILD_TYPE=RELEASE
                -DCMAKE_CXX_STANDARD=17
+               -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+               -DBUILD_SHARED_LIBS=FALSE
+               -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+               -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
 )
 
 ################################################################################
@@ -45,7 +57,14 @@ link_directories(${OPENMESH_ROOT}/lib)
 
 # Find source files
 file(GLOB_RECURSE SOURCES src/*.cpp)
+
+if(EMSCRIPTEN)
+    list(APPEND SOURCES wasm/wasmBindings.cpp)
+endif()
+
 add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
+
+target_include_directories(PolyhedralSplines PRIVATE src)
 
 # Exclude main.cpp from library
 set(MAIN_SRC src/main.cpp)
@@ -57,7 +76,7 @@ if (BUILD_SHARED_LIBS)
 else()
     add_library(PolyhedralSplinesLib STATIC ${SOURCES})
 endif()
-
+target_include_directories(PolyhedralSplinesLib PRIVATE src)
 add_dependencies(PolyhedralSplinesLib OpenMesh)
 
 ### Link OpenMesh ###
@@ -113,3 +132,26 @@ install(TARGETS PolyhedralSplinesLib
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin)
+
+if(EMSCRIPTEN)    
+    set(EM_COMPILE_OPTIONS
+    -fexceptions
+    )
+
+    set(EM_LINK_OPTIONS
+    "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"FS\"]"
+    "-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]"
+    "-sNO_DISABLE_EXCEPTION_CATCHING"
+    "-fexceptions"
+    "-sINITIAL_MEMORY=1GB"
+    "-sMAXIMUM_MEMORY=4GB"
+    "-sALLOW_MEMORY_GROWTH=1"
+    "-sMODULARIZE"
+    "-sEXPORT_NAME=createModule"
+    )
+    target_compile_options(PolyhedralSplines PRIVATE ${EM_COMPILE_OPTIONS})
+    target_link_options(PolyhedralSplines PRIVATE ${EM_LINK_OPTIONS})
+
+    target_compile_options(PolyhedralSplinesLib PRIVATE ${EM_COMPILE_OPTIONS})
+    target_link_options(PolyhedralSplinesLib PRIVATE ${EM_LINK_OPTIONS})
+endif()

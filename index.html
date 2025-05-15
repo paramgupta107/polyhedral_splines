@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>PNS Viewer</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name="description" content="Explore and visualize triply periodic minimal surfaces (TPMS) with this interactive online viewer.">
+	<meta name="keywords" content="TPMS, Triply Periodic Minimal Surfaces, minimal surfaces, mathematical visualization, 3D viewer, online viewer">
+	<style>
+		body {
+		  color: #fff;
+		  font-family: Monospace;
+		  font-size: 13px;
+		  text-align: center;
+
+		  background-color: #242424;
+		  margin: 0px;
+		  overflow: hidden;
+		}
+
+		#info {
+		  color: #ffffff;
+		  position: absolute;
+		  top: 0px;
+		  width: 100%;
+		  padding: 5px;
+		}
+
+		a {
+		  color: gold;
+		}
+
+		#oldie {
+		  font-family: monospace;
+		  font-size: 13px;
+
+		  text-align: center;
+		  background: rgb(0, 0, 50);
+		  color: #fff;
+		  padding: 1em;
+
+		  width: 475px;
+		  margin: 5em auto 0;
+
+		  display: none;
+		}
+
+	</style>
+    
+    <style>
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: 50px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 8px solid #0000;
+  border-right-color: #ffffffff;
+  position: absolute;
+  animation: l24 1s infinite linear;
+  top: 50%;
+  left: 50%;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: inherit;
+  animation: inherit;
+  animation-duration: 2s;
+}
+.loader:after {
+  animation-duration: 4s;
+}
+@keyframes l24 {
+  100% {transform: rotate(1turn)}
+}
+    </style>
+</head>
+
+<body>
+    <script src="build/PolyhedralSplines.js"></script>
+    <input id="fileInput" type="file" style="visibility:hidden;position: absolute;" />
+    <div class="loader" id="loading-screen" style="display: none;"></div>
+	<div id="container"></div>
+
+	<script type="importmap">
+		{
+			"imports": {
+			  "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+			  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+			}
+		  }
+	</script>
+
+	<script type="module">
+		import * as THREE from 'three';
+
+		import Stats from 'three/addons/libs/stats.module.js';
+
+		import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/addons/shaders/ToonShader.js';
+        import { OBJLoader } from "three/addons/loaders/OBJLoader.js"
+
+
+        let processMesh;
+		let getBvFile;
+		let getigsFile;
+
+		let Module;
+		let container, stats;
+
+		let camera, scene, renderer;
+
+		let materials, current_material;
+
+		let light, light2, light3, light4, pointLight, ambientLight;
+
+		let mesh;
+
+		let guiState;
+
+		let time = 0;
+
+		let toUpdate = true;
+
+		const clock = new THREE.Clock();
+
+        let controls;
+
+        let vertexBufferPtr, indexBufferPtr, uvBufferPtr, vertexBuffer, indexBuffer, uvBuffer, inputBufferPtr, normalBufferPtr, normalBuffer;
+
+        let maxVertices = 1024 * 1024;
+
+		let inputLength = 0;
+
+		createModule(/* optional default settings */).then(function(M) {
+    	// this is reached when everything is ready, and you can call methods on Module
+			Module = M;
+			init();
+		});
+
+		function init() {
+
+			processMesh = Module.cwrap("evaluatedPnsMesh", "number", ['number', 'number', 'number', 'number', 'number']);
+			getBvFile = Module.cwrap("getBv", "number", ['number', 'number', 'number']);
+			getigsFile = Module.cwrap("getigs", "number", ['number', 'number', 'number']);
+            vertexBufferPtr = Module._malloc(maxVertices * 3 * Float32Array.BYTES_PER_ELEMENT);
+            indexBufferPtr = Module._malloc(maxVertices * 6 * Uint32Array.BYTES_PER_ELEMENT);
+            uvBufferPtr = Module._malloc(maxVertices * 2 * Float32Array.BYTES_PER_ELEMENT);
+			inputBufferPtr = Module._malloc(1024 * 1024 * Uint8Array.BYTES_PER_ELEMENT);
+			normalBufferPtr = Module._malloc(maxVertices * 3 * Float32Array.BYTES_PER_ELEMENT);
+            vertexBuffer = new Float32Array(Module.HEAPF32.buffer, vertexBufferPtr, maxVertices * 3);
+            indexBuffer = new Uint32Array(Module.HEAPU32.buffer, indexBufferPtr, maxVertices * 6);
+            uvBuffer = new Float32Array(Module.HEAPF32.buffer, uvBufferPtr, maxVertices * 2);
+			normalBuffer = new Float32Array(Module.HEAPF32.buffer, normalBufferPtr, maxVertices * 3);
+			container = document.getElementById( 'container' );
+
+			// CAMERA
+
+			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera.position.set( - 5, 5, 5 );
+
+			// SCENE
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x242424 );
+
+			// LIGHTS
+
+			light = new THREE.DirectionalLight( 0xffffff, 5 );
+			light.position.set( 0.5, 1, 0.5 );
+			scene.add( light );
+
+			light2 = new THREE.DirectionalLight( 0xffffff, 5 );
+			light2.position.set( -0.5, 1, 0.5 );
+			scene.add( light2 );
+
+			light3 = new THREE.DirectionalLight( 0xffffff, 5 );
+			light3.position.set( 0.5, 1, -0.5 );
+			scene.add( light3 );
+
+			light4 = new THREE.DirectionalLight( 0xffffff, 5 );
+			light4.position.set( -0.5, 1, -0.5 );
+			scene.add( light4 );
+
+			pointLight = new THREE.PointLight( 0xff7c00, 5, 0, 0 );
+			pointLight.position.set( 0, 0, 100 );
+			scene.add( pointLight );
+
+			ambientLight = new THREE.AmbientLight( 0x323232, 30 );
+			scene.add( ambientLight );
+
+            const gridHelper = new THREE.PolarGridHelper( 2, 16 );
+	        scene.add( gridHelper );
+
+			// MATERIALS
+
+			materials = generateMaterials();
+			current_material = 'textured';
+
+
+			// Add cube to scene
+            const geometry = new THREE.BufferGeometry();
+            geometry.setIndex(new THREE.BufferAttribute(indexBuffer, 1));
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertexBuffer, 3));
+			geometry.setAttribute('normal', new THREE.BufferAttribute(normalBuffer, 3));
+            geometry.setAttribute('uv', new THREE.BufferAttribute(uvBuffer, 2));
+            geometry.setDrawRange(0, 0);
+            mesh = new THREE.Mesh( geometry,  materials[ current_material ] );
+            mesh.translateY(1)
+            scene.add( mesh );
+
+
+			// RENDERER
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setAnimationLoop( animate );
+			container.appendChild( renderer.domElement );
+
+			// CONTROLS
+
+			controls = new OrbitControls( camera, renderer.domElement );
+			controls.minDistance = 0;
+			// controls.maxDistance = 5000;
+
+			// STATS
+
+			stats = new Stats();
+			container.appendChild( stats.dom );
+
+			// GUI
+
+			setupGui();
+
+			// EVENTS
+
+			window.addEventListener( 'resize', onWindowResize );
+
+		}
+
+		function downloadStringAsFile(filename, text) {
+			// Create a Blob from the string
+			const blob = new Blob([text], { type: 'text/plain' });
+			
+			// Create an anchor element and set the URL to the Blob object
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = filename;
+			
+			// Programmatically click the link to trigger the download
+			document.body.appendChild(link);
+			link.click();
+			
+			// Clean up by removing the link
+			document.body.removeChild(link);
+		}
+
+		//
+
+		function onWindowResize() {
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+		}
+
+		function generateMaterials() {
+
+			// environment map
+
+			const path = 'https://threejs.org/examples/textures/cube/pisa/';
+			const format = '.png';
+			const urls = [
+				path + 'px' + format, path + 'nx' + format,
+				path + 'py' + format, path + 'ny' + format,
+				path + 'pz' + format, path + 'nz' + format
+			];
+
+			const cubeTextureLoader = new THREE.CubeTextureLoader();
+
+			const reflectionCube = cubeTextureLoader.load( urls );
+			const refractionCube = cubeTextureLoader.load( urls );
+			refractionCube.mapping = THREE.CubeRefractionMapping;
+
+			// toons
+			function createShaderMaterial( shader, light, ambientLight ) {
+
+				const u = THREE.UniformsUtils.clone( shader.uniforms );
+
+				const vs = shader.vertexShader;
+				const fs = shader.fragmentShader;
+
+				const material = new THREE.ShaderMaterial( { uniforms: u, vertexShader: vs, fragmentShader: fs } );
+
+				material.uniforms[ 'uDirLightPos' ].value = light.position;
+				material.uniforms[ 'uDirLightColor' ].value = light.color;
+
+				material.uniforms[ 'uAmbientLightColor' ].value = ambientLight.color;
+
+				return material;
+
+				}
+
+			const toonMaterial1 = createShaderMaterial( ToonShader1, light, ambientLight );
+			const toonMaterial2 = createShaderMaterial( ToonShader2, light, ambientLight );
+			const hatchingMaterial = createShaderMaterial( ToonShaderHatching, light, ambientLight );
+			const dottedMaterial = createShaderMaterial( ToonShaderDotted, light, ambientLight );
+
+			const texture = new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/uv_grid_opengl.jpg' );
+			texture.wrapS = THREE.RepeatWrapping;
+			texture.wrapT = THREE.RepeatWrapping;
+			texture.colorSpace = THREE.SRGBColorSpace;
+
+			const materials = {
+				'shiny': new THREE.MeshStandardMaterial( { color: 0x9c0000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0 } ),
+				'chrome': new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube } ),
+				'liquid': new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: refractionCube, refractionRatio: 0.90 } ),
+				'matte': new THREE.MeshPhongMaterial( { specular: 0x494949, shininess: 1 } ),
+				'flat': new THREE.MeshLambertMaterial( { flatShading: true } ),
+				'textured': new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 1, map: texture } ),
+				'plastic': new THREE.MeshPhongMaterial( { specular: 0xc1c1c1, shininess: 250 } ),
+				'toon1': toonMaterial1,
+				'toon2': toonMaterial2,
+				'hatching': hatchingMaterial,
+				'dotted': dottedMaterial
+			};
+
+			return materials;
+
+		}
+
+		//
+
+		function setupGui() {
+
+            const handleFile = function (event){
+                document.getElementById('loading-screen').style.display = 'block';
+                document.getElementById('container').style.display = 'none';
+                const file = event.target.files[0];
+                if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const fileContent = new Uint8Array(event.target.result);
+                    inputLength = fileContent.length;
+
+                    // Allocate memory in WASM heap for the file content
+                    Module.HEAPU8.set(fileContent, inputBufferPtr); // Copy file content to the WASM heap
+                    const numFaceIndeces = processMesh(inputBufferPtr, inputLength, vertexBufferPtr, indexBufferPtr, uvBufferPtr, normalBufferPtr);
+                    mesh.geometry.attributes.position.needsUpdate = true;
+					mesh.geometry.attributes.normal.needsUpdate = true;
+                    mesh.geometry.index.needsUpdate = true;
+                    mesh.geometry.attributes.uv.needsUpdate = true;
+                    mesh.geometry.setDrawRange(0, numFaceIndeces);
+                    // mesh.geometry.computeVertexNormals();
+
+                };
+                // Wait for the loading screen to show before reading the file
+                setTimeout(() => {
+                    reader.readAsArrayBuffer(file);
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('container').style.display = 'block';
+                }, 100);
+                
+            }
+            }
+
+            document.getElementById('fileInput').addEventListener('change', handleFile);
+
+			const createHandler = function ( id ) {
+
+				return function () {
+
+					current_material = id;
+
+					mesh.material = materials[ id ];
+					mesh.enableUvs = ( current_material === 'textured' ) ? true : false;
+					mesh.enableColors = ( current_material === 'colors' || current_material === 'multiColors' ) ? true : false;
+					toUpdate = true;
+				};
+
+			};
+
+
+			guiState = {
+
+				material: 'shiny',
+
+
+				resolution: 100,
+				isolation: 1000,
+
+
+
+				// thickness:0.5,
+
+				'x offset': 0,
+				'y offset': 1,
+				'z offset': 0,
+
+                'x rotation': 0,
+                'y rotation': 0,
+                'z rotation': 0,
+
+				'scale': 1,
+
+                'fileInput': function () {
+                    const fileElem = document.getElementById('fileInput')
+                    fileElem.click()
+                },
+
+				'save to bv': function () {
+					let processed = getBvFile(inputBufferPtr, inputLength);
+					if (processed != 0) {
+						alert("Error writing to .bv file");
+						return;
+					}
+					// Read the file from the virtual filesystem
+					var fileContent = Module.FS.readFile('output.bv');
+
+					// Create a Blob from the file content
+					var blob = new Blob([fileContent], { type: 'text/plain' });
+
+					// Create an anchor element to trigger the download
+					var link = document.createElement('a');
+					link.href = URL.createObjectURL(blob);
+					link.download = 'output.bv';  // Filename for the downloaded file
+
+					// Programmatically click the link to trigger the download
+					document.body.appendChild(link);
+					link.click();
+
+					// Clean up the DOM
+					document.body.removeChild(link);
+					
+
+				},
+
+				'save to igs': function () {
+					let processed = getigsFile(inputBufferPtr, inputLength);
+					if (processed != 0) {
+						alert("Error writing to .igs file");
+						return;
+					}
+					// Read the file from the virtual filesystem
+					var fileContent = Module.FS.readFile('output.igs');
+
+					// Create a Blob from the file content
+					var blob = new Blob([fileContent], { type: 'text/plain' });
+
+					// Create an anchor element to trigger the download
+					var link = document.createElement('a');
+					link.href = URL.createObjectURL(blob);
+					link.download = 'output.igs';  // Filename for the downloaded file
+
+					// Programmatically click the link to trigger the download
+					document.body.appendChild(link);
+					link.click();
+
+					// Clean up the DOM
+					document.body.removeChild(link);
+				},
+
+				dummy: function () {}
+
+			};
+
+			let h;
+
+			const gui = new GUI();
+
+            h = gui.addFolder( 'Input' );  
+            h.add( guiState, "fileInput" ).name( "Select OBJ" );
+
+			// material (type)
+
+			h = gui.addFolder( 'Materials' );
+
+			for ( const m in materials ) {
+
+				guiState[ m ] = createHandler( m );
+				h.add( guiState, m ).name( m );
+
+			}
+
+			
+
+			// simulation
+
+			h = gui.addFolder( 'Transforms' );
+
+
+			
+
+			// h.add( guiState, 'thickness', 0.2, 5, 0.001);
+
+			h.add( guiState, 'x offset', -5, 5, 0.01 );
+			h.add( guiState, 'y offset', -5, 5, 0.01 );
+			h.add( guiState, 'z offset', -5, 5, 0.01 );
+
+            h.add( guiState, 'x rotation', -Math.PI, Math.PI, 0.01 );
+            h.add( guiState, 'y rotation', -Math.PI, Math.PI, 0.01 );
+            h.add( guiState, 'z rotation', -Math.PI, Math.PI, 0.01 );
+
+			h.add( guiState, 'scale', 0.1, 3, 0.01 );
+
+			h = gui.addFolder( 'Export' );  
+            h.add( guiState, "save to bv" ).name( "Export .bv" );
+			h.add( guiState, "save to igs" ).name( "Export .igs" );
+
+			h = gui.onChange( event => {
+				toUpdate = true;
+			} );
+
+		}
+
+
+
+		function animate() {
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+
+			const delta = clock.getDelta();
+
+			time += delta * guiState.speed * 0.5;
+
+			
+
+			if(toUpdate){
+				mesh.position.set(guiState['x offset'], guiState['y offset'], guiState['z offset']);
+                mesh.scale.set(guiState['scale'], guiState['scale'], guiState['scale']);
+                mesh.rotation.set(guiState['x rotation'], guiState['y rotation'], guiState['z rotation']);
+				toUpdate = false;
+			}
+
+			// render
+
+			renderer.render( scene, camera );
+
+		}
+
+</script>
+
+</body>
+</html>
