@@ -23,9 +23,19 @@ static std::vector<std::vector<double>> matrix_to_list(const Matrix& M) {
 }
 
 PYBIND11_MODULE(polyhedral_net_splines, m) {
-    m.doc() = "Polyhedral Net Splines Python Bindings";
+    m.doc() = R"pbdoc(
+        Polyhedral-Net-Splines
+        ---------------------
+        Python bindings for constructing
+        *Polyhedral Net Splines* (PNS) surfaces.
+        )pbdoc";
 
-    py::class_<MeshType>(m, "Pns_control_mesh")
+    py::class_<MeshType>(m, "Pns_control_mesh", R"pbdoc(
+        Editable polygonal control net.
+
+        Internally wraps an *OpenMesh* ``PolyMesh_ArrayKernelT``.  
+        Indices are **zero-based** everywhere.
+        )pbdoc")
         .def(py::init<>())
         .def_static("from_data",
             [](py::list verts, py::list faces) {
@@ -44,24 +54,64 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
                     mesh.add_face(face_handles);
                 }
                 return mesh;
-            }, "Create a Pns Control net from vertex and face data\n Args: verts, faces \n Returns: Pns_control_mesh")
+            }, R"pbdoc(
+                Build a control mesh from raw data.
+
+                Args:
+                    verts (List[Tuple[float, float, float]]):
+                        Cartesian vertex coordinates.
+                    faces (List[List[int]]):
+                        Each inner list stores vertex indices forming
+                        a *single* face (arbitrary polygon).
+
+                Returns:
+                    Pns_control_mesh: Newly-constructed control net.
+                )pbdoc")
         .def_static("from_file",
             [](const std::string& filename) {
                 MeshType mesh;
                 OpenMesh::IO::read_mesh(mesh, filename);
                 return mesh;
-            }, "Create a Pns Control net from a file\n Args: filename \n Returns: Pns_control_mesh")
+            }, R"pbdoc(
+                Load a control mesh from an **OBJ**, **OFF**, or any format
+                supported by *OpenMesh::IO*.
+
+                Args:
+                    filename (str): Path to mesh file on disk.
+
+                Returns:
+                    Pns_control_mesh
+                )pbdoc")
         .def("set_vertex",
             [](MeshType& mesh, int index, double x, double y, double z) {
                 auto vh = mesh.vertex_handle(index);
                 mesh.set_point(vh, {x, y, z});
-            }, "Set vertex position\n Args: index, x, y, z")
+            }, R"pbdoc(
+                Move a single control point.
+
+                Args:
+                    index (int): Zero-based vertex index.
+                    x (float): New *x* coordinate.
+                    y (float): New *y* coordinate.
+                    z (float): New *z* coordinate.
+
+                Returns:
+                    None
+                )pbdoc")
         .def("get_vertex",
             [](const MeshType& mesh, int index) {
                 auto vh = mesh.vertex_handle(index);
                 auto point = mesh.point(vh);
                 return py::make_tuple(point[0], point[1], point[2]);
-            }, "Get vertex position\n Args: index")
+            }, R"pbdoc(
+                Fetch coordinates of a single control point.
+
+                Args:
+                    index (int): Zero-based vertex index.
+
+                Returns:
+                    Tuple[float, float, float]: ``(x, y, z)``
+                )pbdoc")
         .def("get_vertices",
             [](const MeshType& mesh) {
                 std::vector<std::tuple<double, double, double>> verts;
@@ -70,7 +120,12 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
                     verts.push_back(std::make_tuple(point[0], point[1], point[2]));
                 }
                 return verts;
-            }, "Get all vertex positions\n Returns: list of vertex positions")
+            }, R"pbdoc(
+                Get *all* control-net vertices.
+
+                Returns:
+                    List[Tuple[float, float, float]]
+                )pbdoc")
         .def("get_faces",
             [](const MeshType& mesh) {
                 std::vector<std::vector<int>> faces;
@@ -82,9 +137,17 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
                     faces.push_back(face);
                 }
                 return faces;
-            }, "Get all face indices\n Returns: list of face indices");
+            }, R"pbdoc(
+                Get polygonal face connectivity.
+
+                Returns:
+                    List[List[int]]: Each inner list stores vertex indices
+                    of one face.
+                )pbdoc");
     
-    py::class_<Patch>(m, "Patch")
+    py::class_<Patch>(m, "Patch", R"pbdoc(
+        Single Bézier patch produced by a ``PatchBuilder``.
+    )pbdoc")
         .def_property_readonly("deg_u", [](Patch& p){ return p.m_DegU; })
         .def_property_readonly("deg_v", [](Patch& p){ return p.m_DegV; })
         .def_property_readonly("group", [](Patch& p){ return p.m_Group; })
@@ -99,13 +162,26 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
                 rows.append(cols);
             }
             return rows;
-            })
+            }, R"pbdoc(
+                Bernstein-Bézier control points.
+
+                Returns:
+                    List[List[Tuple[float, float, float]]]:
+                        2-D array indexed as ``[i][j]``.
+                )pbdoc")
         .def("degRaise",
             [](Patch& p) {
                 p.degRaise();
-            }, "Raise the degree of the patch");
+            }, R"pbdoc(
+                Elevate degree upto 3.
 
-    py::class_<PatchBuilder>(m, "PatchBuilder")
+                Returns:
+                    None
+            )pbdoc");
+
+    py::class_<PatchBuilder>(m, "PatchBuilder", R"pbdoc(
+        Represents a Pns Patch. Based on the current control net vertex positions, generates one or more ``Patch``.
+    )pbdoc")
         .def_property_readonly("neighbor_verts", 
             [](PatchBuilder& pb) {
                 std::vector<int> indices;
@@ -113,46 +189,86 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
                     indices.push_back(vh.idx());
                 }
                 return indices;
-            }, "Get the indices of the neighboring vertices\n Returns: list of vertex indices")
+            }, R"pbdoc(
+                Indices of Pns patch neighborhood that are use to generate patches.
+
+                Returns:
+                    List[int]
+            )pbdoc")
         .def_property_readonly("mask", 
             [](PatchBuilder& pb) {
                 return matrix_to_list(pb.getMask());
-            }, "Get the mask matrix\n Returns: mask matrix")
+            }, R"pbdoc(
+                Linear transform to generate Patches from neighborhood.
+
+                Returns:
+                    List[List[float]]
+            )pbdoc")
         .def_property_readonly("num_patches", 
             [](PatchBuilder& pb) {
                 return pb.m_NumOfPatches;
-            }, "Get the number of patches\n Returns: number of patches")
+            }, "Number of patches generated by this builder.")
         .def_property_readonly("deg_u", 
             [](PatchBuilder& pb) {
                 return pb.m_DegU;
-            }, "Get the degree in u direction\n Returns: degree in u direction")
+            })
         .def_property_readonly("deg_v", 
             [](PatchBuilder& pb) {
                 return pb.m_DegV;
-            }, "Get the degree in v direction\n Returns: degree in v direction")
+            })
         .def("patch_type", 
             [](PatchBuilder& pb) {
                 return pb.getPatchConstructor()->getGroupName();
-            }, "Get the patch type\n Returns: patch type")
+            }, "Name of the patch type")
         .def("build_patches", 
             &PatchBuilder::buildPatches,
             py::arg("mesh"),
-            "Build patches from the mesh\n Args: mesh\n Returns: list of patches");
+            R"pbdoc(
+                Construct Bézier patches for the supplied control mesh.
+
+                Args:
+                    mesh (Pns_control_mesh)
+
+                Returns:
+                    List[Patch]
+                )pbdoc");
     m.def("get_patch_builders",
             &getPatchBuilders,
             py::arg("mesh"),
-            "Get patch builders from the mesh\n Args: mesh\n Returns: list of patch builders");
-    py::class_<PatchConsumer>(m, "PatchConsumer")
+            R"pbdoc(
+            Creates a ``PatchBuilder`` for each Pns patch type that are found in the control mesh.
+
+            Args:
+                mesh (Pns_control_mesh)
+
+            Returns:
+                List[PatchBuilder]
+        )pbdoc");
+    py::class_<PatchConsumer>(m, "PatchConsumer", R"pbdoc(
+        Abstract class for writing ``Patch`` objects.
+    )pbdoc")
         .def("start", &PatchConsumer::start, "Start the consumer")
         .def("stop", &PatchConsumer::stop, "Stop the consumer")
-        .def("consume", &PatchConsumer::consume, "Consume a patch\n Args: patch");
-    py::class_<BVWriter, PatchConsumer>(m, "BVWriter")
-        .def(py::init<const std::string&>(), py::arg("filename"))
+        .def("consume", &PatchConsumer::consume, R"pbdoc(
+                Writes a Patch.
+
+                Args:
+                    patch (Patch)
+
+                Returns:
+                    None
+             )pbdoc");
+    py::class_<BVWriter, PatchConsumer>(m, "BVWriter", R"pbdoc(
+        *.bv* writer https://www.cise.ufl.edu/research/SurfLab/bview/#file-format.
+    )pbdoc")
+        .def(py::init<const std::string&>(), py::arg("filename"), "Args:\n    filename (str): Destination file.")
         .def("start", &BVWriter::start)
         .def("stop", &BVWriter::stop)
         .def("consume", &BVWriter::consume);
-    py::class_<IGSWriter, PatchConsumer>(m, "IGSWriter")
-        .def(py::init<const std::string&>(), py::arg("filename"))
+    py::class_<IGSWriter, PatchConsumer>(m, "IGSWriter", R"pbdoc(
+        *.igs* (IGES) surface writer.
+    )pbdoc")
+        .def(py::init<const std::string&>(), py::arg("filename"), "Args:\n    filename (str): Destination file.")
         .def("start", &IGSWriter::start)
         .def("stop", &IGSWriter::stop)
         .def("consume", &IGSWriter::consume);
@@ -161,5 +277,18 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
         py::arg("Pns_control_mesh"),
         py::arg("PatchConsumer"),
         py::arg("is_deg_raise") = false,
-        "Process the mesh and consume patches\n Args: Pns_control_mesh, PatchConsumer, is_deg_raise\n Returns: None");
+        R"pbdoc(
+            Constructs a Pns surface using a control net and writes it using a give consumer.
+
+            Args:
+                control_mesh (Pns_control_mesh):
+                    Input control net.
+                consumer (PatchConsumer):
+                    Active consumer instance (e.g. ``BVWriter``).
+                is_deg_raise (bool, optional):
+                    Raise degree to 3. Default is ``False``.
+
+            Returns:
+                None
+        )pbdoc");
 }

@@ -5,9 +5,17 @@ __all__ = ["Pns_control_mesh", "get_patch_builders", "PatchBuilder", "Patch", "P
 
 def create_bv_from_file(control_mesh_file, output_file="output.bv", degreeRaise = False):
     """
-    Writes a BV file from a control mesh file.
-    Parameters:
-        control_mesh_file (str): The path to the control mesh file.
+    Generate a **BV** file from a mesh file.
+
+    Args:
+        control_mesh_file (str):
+            Path to the control net (any format accepted by
+            `Pns_control_mesh.from_file`).
+        output_file (str, optional):
+            Destination ``*.bv`` file name.
+        degree_raise (bool, optional):
+             Raise degree to 3. Default is ``False``.
+
     Returns:
         None
     """
@@ -17,9 +25,14 @@ def create_bv_from_file(control_mesh_file, output_file="output.bv", degreeRaise 
 
 def create_igs_from_file(control_mesh_file, output_file="output.igs", degreeRaise = False):
     """
-    Writes a IGS file from a control mesh file.
-    Parameters:
-        control_mesh_file (str): The path to the control mesh file.
+    Generate an **IGS** (IGES) file from a mesh on disk.
+
+    Args:
+        control_mesh_file (str): Path to the input control net.
+        output_file (str, optional): Destination ``*.igs`` file name.
+        degree_raise (bool, optional):
+            Raise degree to 3. Default is ``False``.
+
     Returns:
         None
     """
@@ -29,9 +42,13 @@ def create_igs_from_file(control_mesh_file, output_file="output.igs", degreeRais
 
 def create_bv(control_mesh, output_file="output.bv", degreeRaise = False):
     """
-    Writes a BV file from a control mesh file.
-    Parameters:
-        control_mesh_file (str): The path to the control mesh file.
+    Write a **BV** for a Pns surface file from a control mesh.
+
+    Args:
+        control_mesh (Pns_control_mesh): control net.
+        output_file (str, optional): Destination ``*.bv`` file name.
+        degree_raise (bool, optional): Raise degree to 3. Default is ``False``.
+
     Returns:
         None
     """
@@ -48,9 +65,13 @@ def create_bv(control_mesh, output_file="output.bv", degreeRaise = False):
 
 def create_igs(control_mesh, output_file="output.igs", degreeRaise = False):
     """
-    Writes a IGS file from a control mesh file.
-    Parameters:
-        control_mesh_file (str): The path to the control mesh file.
+    Write an **IGS** file from a control mesh.
+
+    Args:
+        control_mesh (Pns_control_mesh): control net.
+        output_file (str, optional): Destination ``*.igs`` file name.
+        degree_raise (bool, optional): Raise degree to 3. Default is ``False``.
+
     Returns:
         None
     """
