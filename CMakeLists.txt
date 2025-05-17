@@ -49,6 +49,8 @@ ExternalProject_Add(
                -DBUILD_SHARED_LIBS=FALSE
                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
+               -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+               -DWIN32:BOOL=TRUE
 )
 
 ################################################################################
@@ -78,7 +80,7 @@ else()
 endif()
 target_include_directories(PolyhedralSplinesLib PRIVATE src)
 add_dependencies(PolyhedralSplinesLib OpenMesh)
-
+set_property(TARGET PolyhedralSplinesLib PROPERTY POSITION_INDEPENDENT_CODE ON)
 ### Link OpenMesh ###
 include_directories(SYSTEM ${OPENMESH_ROOT}/include)
 target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
