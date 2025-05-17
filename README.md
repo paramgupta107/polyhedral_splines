@@ -19,7 +19,7 @@ Linux (Ubuntu 20.04 LTS) & macOS (Catalina 10.15) & Windows 10
 
 **Note:**
 
-* CMake will automatically download and install OpenMesh into `/Source/External` using the source with commit hash pointing to the tested version.
+* CMake will automatically download and install OpenMesh into `/External` using the source with commit hash pointing to the tested version.
 * The program should be compatible to equivalent or higher versions with little or no modification.
 
 ### Tested Environments
@@ -45,10 +45,9 @@ For UNIX-based system:
 ```shell
 git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
 cd polyhedral_splines
-mkdir build
-cd build
-cmake ../Source
-make
+cmake -B build
+cmake --build build
+cmake --install build
 ```
 
 For Windows:
@@ -62,9 +61,7 @@ For Windows:
 cd Downloads
 git clone https://kylelo@bitbucket.org/surflab/polyhedral_splines.git
 cd polyhedral_splines
-mkdir build
-cd build
-cmake ../Source
+cmake -B build
 ```
 
 3. In the build folder find and launch `PolyhedralSplines.sln` with Visual Studio 2017 (or just double click on .sln file from file browser)

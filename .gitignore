@@ -10,6 +10,8 @@
 build/*
 Build/*
 
+/External/*
+
 # Visual Studio 2017 files
 packages.config
 *.vcxproj.filters
