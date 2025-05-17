@@ -31,7 +31,7 @@ ExternalProject_Add(
     OpenMesh
     PREFIX ${OPENMESH_ROOT}
     GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
-    GIT_TAG db8c0608830ae7324b2b2e1d91e4db565b2d3eae
+    GIT_TAG f13a3bf79f8dc91cd453b74baa9dc6f97a5a3062
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
                -DBUILD_APPS=FALSE
                -DOPENMESH_BUILD_SHARED=FALSE
