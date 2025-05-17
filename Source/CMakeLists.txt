@@ -36,6 +36,7 @@ ExternalProject_Add(
                -DBUILD_APPS=FALSE
                -DOPENMESH_BUILD_SHARED=FALSE
                -DCMAKE_BUILD_TYPE=RELEASE
+               -DCMAKE_CXX_STANDARD=17
 )
 
 ################################################################################
