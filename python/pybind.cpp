@@ -1,3 +1,4 @@
+#define OM_STATIC_BUILD
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
