@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 project(PolyhedralSplines)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
@@ -120,6 +120,11 @@ add_dependencies(PolyhedralSplines EmbedTables)
 add_dependencies(PolyhedralSplinesLib EmbedTables)
 target_sources(PolyhedralSplinesLib PRIVATE "${EMBEDDED_TABLE_CPP}")
 target_sources(PolyhedralSplines PRIVATE "${EMBEDDED_TABLE_CPP}")
+
+# ------------------------------------------------------------------------------
+# build the Python module
+# ------------------------------------------------------------------------------
+add_subdirectory(python)
 
 # ------------------------------------------------------------------------------
 # Install headers and lib
