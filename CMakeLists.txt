@@ -139,7 +139,7 @@ if(EMSCRIPTEN)
     )
 
     set(EM_LINK_OPTIONS
-    "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"FS\"]"
+    "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"FS\", \"HEAPF32\", \"HEAPU32\", \"HEAPU8\"]"
     "-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]"
     "-sNO_DISABLE_EXCEPTION_CATCHING"
     "-fexceptions"
