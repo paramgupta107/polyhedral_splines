@@ -10,3 +10,6 @@ requires = [
   "pybind11>=2.6.0"
 ]
 build-backend = "scikit_build_core.build"
+
+[tool.scikit-build.cmake]
+        args = ["-DBUILD_PYTHON_BINDINGS=ON"]

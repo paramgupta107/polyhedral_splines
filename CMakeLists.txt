@@ -126,7 +126,9 @@ target_sources(PolyhedralSplines PRIVATE "${EMBEDDED_TABLE_CPP}")
 # ------------------------------------------------------------------------------
 # build the Python module
 # ------------------------------------------------------------------------------
-add_subdirectory(python)
+if (BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)   # your python/CMakeLists.txt lives here
+endif()
 
 # ------------------------------------------------------------------------------
 # Install headers and lib
