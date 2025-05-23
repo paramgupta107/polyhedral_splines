@@ -26,7 +26,7 @@ if(UNIX)
 endif()
 
 add_compile_definitions(_USE_MATH_DEFINES)
-
+add_compile_definitions(OM_STATIC_BUILD)
 ################################################################################
 # Clone and build install dependencies
 ################################################################################
