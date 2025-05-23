@@ -29,12 +29,13 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle)
             return false;
         }
 
-        if(Helper::is_triangle(m_Mesh, t_FHs[i]) && (
-           !Helper::is_triangle(m_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
-           !Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()])))
+        if(Helper::is_triangle(m_Mesh, t_FHs[i]))
         {
             t_Tri_Count++;
-            return false;
+            if(!Helper::is_triangle(m_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
+                !Helper::is_triangle(m_Mesh, t_FHs[(i+1)%t_FHs.size()])){
+                return false;
+                }
         }
     }
     if (t_Tri_Count != 0 && t_Tri_Count != 2)
