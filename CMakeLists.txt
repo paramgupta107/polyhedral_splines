@@ -1,40 +1,61 @@
 cmake_minimum_required(VERSION 3.15)
 project(PolyhedralSplines)
 
+#-------------------------------------------------------------------------------
+# Configuration options
+#-------------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # Required by OpenMesh
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True )
+add_compile_definitions(_USE_MATH_DEFINES OM_STATIC_BUILD)
 
+# Unix compilation settings
+if(UNIX)
+    add_compile_options(-Wfatal-errors -w)
+endif()
+
+#-------------------------------------------------------------------------------
+# Emscripten configuration
+#-------------------------------------------------------------------------------
 if(EMSCRIPTEN)
     message(STATUS "Building for Emscripten")
     message(STATUS "EMSCRIPTEN_ROOT: ${EMSCRIPTEN_ROOT}")
     message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+
+    set(EM_COMPILE_OPTIONS -fexceptions)
+    set(EM_LINK_OPTIONS
+        "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"FS\", \"HEAPF32\", \"HEAPU32\", \"HEAPU8\"]"
+        "-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]"
+        "-sNO_DISABLE_EXCEPTION_CATCHING"
+        "-fexceptions"
+        "-sINITIAL_MEMORY=1GB"
+        "-sMAXIMUM_MEMORY=4GB"
+        "-sALLOW_MEMORY_GROWTH=1"
+        "-sMODULARIZE"
+        "-sEXPORT_NAME=createModule"
+    )
 else()
     message(STATUS "Building for native")
 endif()
 
-# Force make to stop after first error
-if(UNIX)
-    add_definitions(
-        -Wfatal-errors # stop after first error
-        -w
-    )
-endif()
-
-add_compile_definitions(_USE_MATH_DEFINES)
-add_compile_definitions(OM_STATIC_BUILD)
-################################################################################
-# Clone and build install dependencies
-################################################################################
-include(ExternalProject)
-
-# OpenMesh
+#-------------------------------------------------------------------------------
+# External dependencies
+#-------------------------------------------------------------------------------
 set(OPENMESH_ROOT ${CMAKE_SOURCE_DIR}/External/OpenMesh)
 
+get_property(MULTI_CONF GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT MULTI_CONF)
+    set(BUILD_TYPE -DCMAKE_BUILD_TYPE=RELEASE)
+else()
+    set(BUILD_TYPE -DCMAKE_BUILD_TYPE=$<CONFIG>)
+endif()
+
+include(ExternalProject)
 ExternalProject_Add(
     OpenMesh
     PREFIX ${OPENMESH_ROOT}
@@ -43,7 +64,6 @@ ExternalProject_Add(
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
                -DBUILD_APPS=FALSE
                -DOPENMESH_BUILD_SHARED=FALSE
-               -DCMAKE_BUILD_TYPE=RELEASE
                -DCMAKE_CXX_STANDARD=17
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DBUILD_SHARED_LIBS=FALSE
@@ -51,53 +71,70 @@ ExternalProject_Add(
                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                -DWIN32:BOOL=TRUE
+               ${BUILD_TYPE}
 )
 
-################################################################################
+
+set(OPENMESH_LIBS
+    debug OpenMeshCored optimized OpenMeshCore
+    debug OpenMeshToolsd optimized OpenMeshTools
+)
 
 link_directories(${OPENMESH_ROOT}/lib)
+include_directories(SYSTEM ${OPENMESH_ROOT}/include)
 
-# Find source files
+#-------------------------------------------------------------------------------
+# Collect source files
+#-------------------------------------------------------------------------------
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
-if(EMSCRIPTEN)
-    list(APPEND SOURCES wasm/wasmBindings.cpp)
-endif()
 
-add_executable(PolyhedralSplines src/main.cpp ${SOURCES})
-
-target_include_directories(PolyhedralSplines PRIVATE src)
-
-# Exclude main.cpp from library
-set(MAIN_SRC src/main.cpp)
-list(REMOVE_ITEM SOURCES ${MAIN_SRC})
-
-# Build library
-if (BUILD_SHARED_LIBS)
+# Create the library target
+if(BUILD_SHARED_LIBS)
     add_library(PolyhedralSplinesLib SHARED ${SOURCES})
 else()
     add_library(PolyhedralSplinesLib STATIC ${SOURCES})
 endif()
-target_include_directories(PolyhedralSplinesLib PRIVATE src)
-add_dependencies(PolyhedralSplinesLib OpenMesh)
-set_property(TARGET PolyhedralSplinesLib PROPERTY POSITION_INDEPENDENT_CODE ON)
-### Link OpenMesh ###
-include_directories(SYSTEM ${OPENMESH_ROOT}/include)
-target_link_libraries(PolyhedralSplines OpenMeshCore OpenMeshTools)
 
-# OpenMesh need to be built before main program
-add_dependencies(PolyhedralSplines OpenMesh)
+# Remove main.cpp from the library sources
+list(REMOVE_ITEM SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(PolyhedralSplinesLib PUBLIC OpenMeshCore OpenMeshTools)
+# Add conditional source files
+if(BUILD_SHARED_LIBS)
+    target_sources(PolyhedralSplinesLib PRIVATE csharp/csBindings.cpp)
+endif()
 
-# ------------------------------------------------------------------------------
+if(NOT EMSCRIPTEN)
+    add_executable(PolyhedralSplines src/main.cpp)
+else()
+    add_executable(PolyhedralSplines wasm/wasmBindings.cpp)
+    target_sources(PolyhedralSplinesLib PRIVATE wasm/wasmBindings.cpp)
+endif()
+
+# Create the executable target
+target_sources(PolyhedralSplines PRIVATE ${SOURCES})
+
+#-------------------------------------------------------------------------------
+# Configure targets
+#-------------------------------------------------------------------------------
+foreach(TARGET PolyhedralSplines PolyhedralSplinesLib)
+    target_include_directories(${TARGET} PRIVATE src)
+    target_link_libraries(${TARGET} ${OPENMESH_LIBS})
+    add_dependencies(${TARGET} OpenMesh)
+    
+    if(EMSCRIPTEN)
+        target_compile_options(${TARGET} PRIVATE ${EM_COMPILE_OPTIONS})
+        target_link_options(${TARGET} PRIVATE ${EM_LINK_OPTIONS})
+    endif()
+endforeach()
+
+#-------------------------------------------------------------------------------
 # Embed table files into a generated .cpp file
-# ------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
 set(TABLE_SRC_PATH ${CMAKE_SOURCE_DIR}/src/Patch/Table)
-file(GLOB_RECURSE TABLE_FILES "${TABLE_SRC_PATH}/*.csv")
-
 set(EMBEDDED_TABLE_CPP "${CMAKE_BINARY_DIR}/embedded_tables.cpp")
+
+file(GLOB_RECURSE TABLE_FILES "${TABLE_SRC_PATH}/*.csv")
 file(WRITE "${EMBEDDED_TABLE_CPP}" "#include <unordered_map>\n#include <string>\n\n")
 file(APPEND "${EMBEDDED_TABLE_CPP}" "static std::unordered_map<std::string, const char*> g_embedded_tables = {\n")
 
@@ -118,23 +155,24 @@ file(APPEND "${EMBEDDED_TABLE_CPP}" "const std::unordered_map<std::string, const
 file(APPEND "${EMBEDDED_TABLE_CPP}" "  return g_embedded_tables;\n}\n")
 
 add_custom_target(EmbedTables DEPENDS "${EMBEDDED_TABLE_CPP}")
-add_dependencies(PolyhedralSplines EmbedTables)
-add_dependencies(PolyhedralSplinesLib EmbedTables)
+
 target_sources(PolyhedralSplinesLib PRIVATE "${EMBEDDED_TABLE_CPP}")
 target_sources(PolyhedralSplines PRIVATE "${EMBEDDED_TABLE_CPP}")
+add_dependencies(PolyhedralSplines EmbedTables)
+add_dependencies(PolyhedralSplinesLib EmbedTables)
 
-# ------------------------------------------------------------------------------
-# build the Python module
-# ------------------------------------------------------------------------------
-if (BUILD_PYTHON_BINDINGS)
-    add_subdirectory(python)   # your python/CMakeLists.txt lives here
+#-------------------------------------------------------------------------------
+# Python Bindings
+#-------------------------------------------------------------------------------
+if(BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
 endif()
 
-# ------------------------------------------------------------------------------
-# Install headers and lib
-# ------------------------------------------------------------------------------
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/PolyhedralSplines
+#-------------------------------------------------------------------------------
+# Installation
+#-------------------------------------------------------------------------------
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ 
+        DESTINATION include/PolyhedralSplines
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp")
 
 install(TARGETS PolyhedralSplinesLib
@@ -142,25 +180,11 @@ install(TARGETS PolyhedralSplinesLib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin)
 
-if(EMSCRIPTEN)    
-    set(EM_COMPILE_OPTIONS
-    -fexceptions
-    )
-
-    set(EM_LINK_OPTIONS
-    "-sEXPORTED_RUNTIME_METHODS=[\"ccall\",\"cwrap\",\"UTF8ToString\",\"FS\", \"HEAPF32\", \"HEAPU32\", \"HEAPU8\"]"
-    "-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]"
-    "-sNO_DISABLE_EXCEPTION_CATCHING"
-    "-fexceptions"
-    "-sINITIAL_MEMORY=1GB"
-    "-sMAXIMUM_MEMORY=4GB"
-    "-sALLOW_MEMORY_GROWTH=1"
-    "-sMODULARIZE"
-    "-sEXPORT_NAME=createModule"
-    )
-    target_compile_options(PolyhedralSplines PRIVATE ${EM_COMPILE_OPTIONS})
-    target_link_options(PolyhedralSplines PRIVATE ${EM_LINK_OPTIONS})
-
-    target_compile_options(PolyhedralSplinesLib PRIVATE ${EM_COMPILE_OPTIONS})
-    target_link_options(PolyhedralSplinesLib PRIVATE ${EM_LINK_OPTIONS})
+if(BUILD_SHARED_LIBS)
+    install(CODE "
+        file(INSTALL
+        DESTINATION \"${CMAKE_SOURCE_DIR}/csharp\"
+        TYPE FILE
+        FILES \"\$<TARGET_FILE:PolyhedralSplinesLib>\")
+    ")
 endif()
