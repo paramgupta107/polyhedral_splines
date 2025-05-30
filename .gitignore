@@ -2,6 +2,9 @@
 *.swp
 *.swo
 
+#VS Code files
+/.vscode
+
 # Mac specific files
 .DS_Store
 .directory
@@ -9,6 +12,9 @@
 # Build files
 build/*
 Build/*
+csharp/libPolyhedralSplinesLib.dll
+csharp/PolyhedralSplinesLib.dll
+csharp/PolyhedralNetSplines.dll
 
 /External/*
 
