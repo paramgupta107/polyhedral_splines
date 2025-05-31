@@ -48,11 +48,10 @@ endif()
 #-------------------------------------------------------------------------------
 set(OPENMESH_ROOT ${CMAKE_SOURCE_DIR}/External/OpenMesh)
 
-get_property(MULTI_CONF GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT MULTI_CONF)
-    set(BUILD_TYPE -DCMAKE_BUILD_TYPE=RELEASE)
-else()
-    set(BUILD_TYPE -DCMAKE_BUILD_TYPE=$<CONFIG>)
+
+if (NOT CMAKE_BUILD_TYPE)
+  message (STATUS "Defaulting to 'Release' mode as none was specified")
+  set (CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type" FORCE)
 endif()
 
 include(ExternalProject)
@@ -67,11 +66,11 @@ ExternalProject_Add(
                -DCMAKE_CXX_STANDARD=17
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DBUILD_SHARED_LIBS=FALSE
+               -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                -DWIN32:BOOL=TRUE
-               ${BUILD_TYPE}
 )
 
 
@@ -132,7 +131,7 @@ endforeach()
 # Embed table files into a generated .cpp file
 #-------------------------------------------------------------------------------
 set(TABLE_SRC_PATH ${CMAKE_SOURCE_DIR}/src/Patch/Table)
-set(EMBEDDED_TABLE_CPP "${CMAKE_BINARY_DIR}/embedded_tables.cpp")
+set(EMBEDDED_TABLE_CPP "${CMAKE_BINARY_DIR}/EmbeddedTables.cpp")
 
 file(GLOB_RECURSE TABLE_FILES "${TABLE_SRC_PATH}/*.csv")
 file(WRITE "${EMBEDDED_TABLE_CPP}" "#include <unordered_map>\n#include <string>\n\n")
