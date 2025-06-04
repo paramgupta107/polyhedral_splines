@@ -9,24 +9,22 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <vector>
 
-#define interop __declspec(dllexport)
-
 extern "C"
 {
 //-----------------------------------------------------------------------------
 // PNSControlMesh Functions                                                   |
 //-----------------------------------------------------------------------------
-    interop MeshType* MeshCreate_Interop()
+    MeshType* MeshCreate_Interop()
     {
         return new MeshType();
     }
     
-    interop void MeshDestroy_Interop(MeshType* mesh)
+    void MeshDestroy_Interop(MeshType* mesh)
     {
         delete mesh;
     }
     
-    interop MeshType* MeshFromFile_Interop(const char* filename)
+    MeshType* MeshFromFile_Interop(const char* filename)
     {
         MeshType* mesh = new MeshType();
         bool success = OpenMesh::IO::read_mesh(*mesh, filename);
@@ -37,7 +35,7 @@ extern "C"
         return mesh;
     }
     
-    interop MeshType* MeshFromData_Interop(const float* vertices, int vertexCount, const int* faceIndices, const int* faceSizes, int faceCount)
+    MeshType* MeshFromData_Interop(const float* vertices, int vertexCount, const int* faceIndices, const int* faceSizes, int faceCount)
     {
         MeshType* mesh = new MeshType();
         
@@ -65,14 +63,14 @@ extern "C"
         return mesh;
     }
     
-    interop void MeshSetVertex_Interop(MeshType* mesh, int index, float x, float y, float z)
+    void MeshSetVertex_Interop(MeshType* mesh, int index, float x, float y, float z)
     {
         if (!mesh) return;
         auto vh = mesh->vertex_handle(index);
         mesh->set_point(vh, MeshType::Point(x, y, z));
     }
     
-    interop void MeshGetVertex_Interop(const MeshType* mesh, int index, float* coords)
+    void MeshGetVertex_Interop(const MeshType* mesh, int index, float* coords)
     {
         if (!mesh) return;
         auto vh = mesh->vertex_handle(index);
@@ -82,13 +80,13 @@ extern "C"
         coords[2] = point[2];
     }
     
-    interop int MeshGetVertexCount_Interop(const MeshType* mesh)
+    int MeshGetVertexCount_Interop(const MeshType* mesh)
     {
         if (!mesh) return 0;
         return mesh->n_vertices();
     }
     
-    interop void MeshGetVertices_Interop(const MeshType* mesh, float* coords, int count)
+    void MeshGetVertices_Interop(const MeshType* mesh, float* coords, int count)
     {
         if (!mesh) return;
         int i = 0;
@@ -102,13 +100,13 @@ extern "C"
         }
     }
     
-    interop int MeshGetFaceCount_Interop(const MeshType* mesh)
+    int MeshGetFaceCount_Interop(const MeshType* mesh)
     {
         if (!mesh) return 0;
         return mesh->n_faces();
     }
     
-    interop void MeshGetFaceSizes_Interop(const MeshType* mesh, int* sizes, int count)
+    void MeshGetFaceSizes_Interop(const MeshType* mesh, int* sizes, int count)
     {
         if (!mesh) return;
         int i = 0;
@@ -119,7 +117,7 @@ extern "C"
         }
     }
     
-    interop void MeshGetFaceIndices_Interop(const MeshType* mesh, int* indices, int totalCount) {
+    void MeshGetFaceIndices_Interop(const MeshType* mesh, int* indices, int totalCount) {
         if (!mesh) return;
         int index = 0;
         for (auto fh : mesh->faces()) {
@@ -133,21 +131,21 @@ extern "C"
 //-----------------------------------------------------------------------------
 // PatchBuilder functions                                                     |
 //-----------------------------------------------------------------------------
-    interop void PatchBuilderDestroy_Interop(PatchBuilder* builder) {
+    void PatchBuilderDestroy_Interop(PatchBuilder* builder) {
         delete builder;
     }
     
-    interop PatchBuilder* PatchBuilder_Clone_Interop(PatchBuilder* builder) {
+    PatchBuilder* PatchBuilder_Clone_Interop(PatchBuilder* builder) {
         if (!builder) return nullptr;
         return new PatchBuilder(*builder);
     }
     
-    interop int PatchBuilderGetNeighborVertCount_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetNeighborVertCount_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->getNeighborVerts().size();
     }
     
-    interop void PatchBuilderGetNeighborVerts_Interop(const PatchBuilder* builder, int* indices, int count) {
+    void PatchBuilderGetNeighborVerts_Interop(const PatchBuilder* builder, int* indices, int count) {
         if (!builder) return;
         auto verts = builder->getNeighborVerts();
         for (int i = 0; i < count && i < verts.size(); i++) {
@@ -155,17 +153,17 @@ extern "C"
         }
     }
     
-    interop int PatchBuilderGetMaskRows_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetMaskRows_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->getMask().getRows();
     }
     
-    interop int PatchBuilderGetMaskCols_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetMaskCols_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->getMask().getCols();
     }
     
-    interop void PatchBuilderGetMask_Interop(const PatchBuilder* builder, float* mask, int size) {
+    void PatchBuilderGetMask_Interop(const PatchBuilder* builder, float* mask, int size) {
         if (!builder) return;
         const Matrix& m = builder->getMask();
         int rows = m.getRows();
@@ -178,33 +176,33 @@ extern "C"
         }
     }
     
-    interop int PatchBuilderGetNumPatches_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetNumPatches_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->m_NumOfPatches;
     }
     
-    interop int PatchBuilderGetDegU_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetDegU_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->m_DegU;
     }
     
-    interop int PatchBuilderGetDegV_Interop(const PatchBuilder* builder) {
+    int PatchBuilderGetDegV_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
         return builder->m_DegV;
     }
     
-    interop const char* PatchBuilderGetPatchType_Interop(const PatchBuilder* builder) {
+    const char* PatchBuilderGetPatchType_Interop(const PatchBuilder* builder) {
         if (!builder || !builder->getPatchConstructor()) return "";
         return builder->getPatchConstructor()->getGroupName().c_str();
     }
     
-    interop int PatchBuilderGetPatchCount_Interop(const PatchBuilder* builder, const MeshType* mesh) {
+    int PatchBuilderGetPatchCount_Interop(const PatchBuilder* builder, const MeshType* mesh) {
         if (!builder || !mesh) return 0;
         std::vector<Patch> patches = builder->buildPatches(*mesh);
         return patches.size();
     }
     
-    interop void PatchBuilderBuildPatches_Interop(const PatchBuilder* builder, const MeshType* mesh, Patch** patchesOut) {
+    void PatchBuilderBuildPatches_Interop(const PatchBuilder* builder, const MeshType* mesh, Patch** patchesOut) {
         if (!builder || !mesh || !patchesOut) return;
         std::vector<Patch> patches = builder->buildPatches(*mesh);
         for (size_t i = 0; i < patches.size(); i++) {
@@ -216,31 +214,31 @@ extern "C"
 //-----------------------------------------------------------------------------
 // Patch Functions                                                            |
 //-----------------------------------------------------------------------------
-    interop void PatchDestroy_Interop(Patch* patch) {
+    void PatchDestroy_Interop(Patch* patch) {
         delete patch;
     }
     
-    interop int PatchGetDegU_Interop(const Patch* patch) {
+    int PatchGetDegU_Interop(const Patch* patch) {
         if (!patch) return 0;
         return patch->m_DegU;
     }
     
-    interop int PatchGetDegV_Interop(const Patch* patch) {
+    int PatchGetDegV_Interop(const Patch* patch) {
         if (!patch) return 0;
         return patch->m_DegV;
     }
     
-    interop const char* PatchGetGroup_Interop(const Patch* patch) {
+    const char* PatchGetGroup_Interop(const Patch* patch) {
         if (!patch) return "";
         return patch->m_Group.c_str();
     }
     
-    interop bool PatchIsValid_Interop(const Patch* patch) {
+    bool PatchIsValid_Interop(const Patch* patch) {
         if (!patch) return false;
         return patch->isValid();
     }
     
-    interop void PatchGetBBCoefs_Interop(const Patch* patch, float* coefs, int size) {
+    void PatchGetBBCoefs_Interop(const Patch* patch, float* coefs, int size) {
         if (!patch) return;
         int rows = patch->m_BBcoefs.size();
         if (rows == 0) return;
@@ -259,7 +257,7 @@ extern "C"
         }
     }
     
-    interop void PatchDegRaise_Interop(Patch* patch) {
+    void PatchDegRaise_Interop(Patch* patch) {
         if (!patch) return;
         patch->degRaise();
     }
@@ -267,19 +265,19 @@ extern "C"
 //-----------------------------------------------------------------------------
 // Patch Consumer Functions                                                   |
 //-----------------------------------------------------------------------------
-    interop void PatchConsumerDestroy_Interop(PatchConsumer* consumer) {
+    void PatchConsumerDestroy_Interop(PatchConsumer* consumer) {
         delete consumer;
     }
     
-    interop void PatchConsumerStart_Interop(PatchConsumer* consumer) {
+    void PatchConsumerStart_Interop(PatchConsumer* consumer) {
         if (consumer) consumer->start();
     }
     
-    interop void PatchConsumerStop_Interop(PatchConsumer* consumer) {
+    void PatchConsumerStop_Interop(PatchConsumer* consumer) {
         if (consumer) consumer->stop();
     }
     
-    interop void PatchConsumerConsume_Interop(PatchConsumer* consumer, Patch* patch) {
+    void PatchConsumerConsume_Interop(PatchConsumer* consumer, Patch* patch) {
         if (consumer && patch) consumer->consume(*patch);
     }
 
@@ -287,19 +285,19 @@ extern "C"
 //-----------------------------------------------------------------------------
 // PNS Utility Class Functions                                                |
 //-----------------------------------------------------------------------------
-    interop void ProcessMesh_Interop(MeshType* mesh, PatchConsumer* consumer, bool isDegRaise) {
+    void ProcessMesh_Interop(MeshType* mesh, PatchConsumer* consumer, bool isDegRaise) {
         if (mesh && consumer) {
             process_mesh(*mesh, consumer, isDegRaise);
         }
     }
     
-    interop int GetPatchBuildersCount_Interop(const MeshType* mesh) {
+    int GetPatchBuildersCount_Interop(const MeshType* mesh) {
         if (!mesh) return 0;
         auto builders = getPatchBuilders(*mesh);
         return builders.size();
     }
     
-    interop void GetPatchBuilders_Interop(const MeshType* mesh, PatchBuilder** buildersOut, int count) {
+    void GetPatchBuilders_Interop(const MeshType* mesh, PatchBuilder** buildersOut, int count) {
         if (!mesh || !buildersOut) return;
         auto builders = getPatchBuilders(*mesh);
         for (size_t i = 0; i < builders.size() && i < count; i++) {
@@ -307,11 +305,11 @@ extern "C"
         }
     }
     
-    interop BVWriter* BVWriterCreate_Interop(const char* filename) {
+    BVWriter* BVWriterCreate_Interop(const char* filename) {
         return new BVWriter(filename);
     }
     
-    interop IGSWriter* IGSWriterCreate_Interop(const char* filename) {
+    IGSWriter* IGSWriterCreate_Interop(const char* filename) {
         return new IGSWriter(filename);
     }
 
