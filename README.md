@@ -45,8 +45,8 @@ build/PolyhedralSplines [options] <input>
 ```
 
 **For Windows (PowerShell)**  
-```
-build/Debug/PolyhedralSplines.exe [options] <input>
+```shell
+build\Debug\PolyhedralSplines.exe [options] <input>
 ```
 
 ### Options
