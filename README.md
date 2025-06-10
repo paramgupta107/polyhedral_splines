@@ -10,6 +10,7 @@
 7.  [Web Interface](#web-interface)
 8.  [C++ Library](#c-library)
 8.  [Citation](#citation)
+9.  [License](#license)
 
 # Environment Setting
 
@@ -150,3 +151,7 @@ Jörg Peters, Kyle Lo, Kestutis Karciauskas
 TOMS, 2023  
 [paper](https://www.cise.ufl.edu/research/SurfLab/papers/23PolySpl_TOMS.pdf)  
 [documentation](https://www.cise.ufl.edu/research/SurfLab/papers/23PolySpl_TOMS_Doc.pdf)
+
+## License
+
+This project is licensed under the [CC BY-NC](LICENSE).
