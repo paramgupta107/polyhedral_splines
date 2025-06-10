@@ -14,22 +14,6 @@
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 
-void calculate_uv(MeshType& mesh) {
-    // Ensure that the mesh has 2D texture coordinates storage
-    mesh.request_vertex_texcoords2D();
-
-    // Iterate over all vertices and set the UVs to the x and z coordinates of each vertex
-    for (MeshType::VertexIter v_it = mesh.vertices_begin(); v_it != mesh.vertices_end(); ++v_it) {
-        // Get the position of the current vertex
-        MeshType::Point p = mesh.point(*v_it);
-
-        // Use the x and z coordinates as texture coordinates (u = x, v = z)
-        MeshType::TexCoord2D texcoord(p[0], p[2]);  // p[0] is x, p[2] is z
-
-        // Assign the texture coordinates to the vertex
-        mesh.set_texcoord2D(*v_it, texcoord);
-    }
-}
 
 void scaleAndTranslateMesh(MeshType &mesh) {
     // Variables to store the min and max coordinates
@@ -68,7 +52,6 @@ std::string saveMeshToString(MeshType& mesh) {
 
     // mesh.request_vertex_normals();
     // mesh.update_normals();
-    calculate_uv(mesh);
     std::ostringstream objStream;
     OpenMesh::IO::Options options;
 
@@ -99,10 +82,10 @@ extern "C" {
             std::cerr << "Could not read mesh" << std::endl;
             return 0;
         }
-        calculate_uv(mesh);
 
         //create bv
         MeshType t_Mesh;
+        t_Mesh.request_vertex_texcoords2D();
         PatchConsumer* t_Writer = new EvaluatedMeshWriter(&t_Mesh);
 
         // Convert mesh into Patches (contain BB-coefficients) and write patches into .bv file
@@ -124,8 +107,9 @@ extern "C" {
             normalBuffer[i * 3 + 1] = n[1];
             normalBuffer[i * 3 + 2] = n[2];
 
-            uvBuffer[i * 2] = p[0];
-            uvBuffer[i * 2 + 1] = p[2];
+            MeshType::TexCoord2D uv = t_Mesh.texcoord2D(MeshType::VertexHandle(i));
+            uvBuffer[i * 2] = uv[0];
+            uvBuffer[i * 2 + 1] = uv[1];
         }
 
         for (int i = 0; i < t_Mesh.n_faces(); i++) {

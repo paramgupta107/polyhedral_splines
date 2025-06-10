@@ -136,6 +136,11 @@
 
 		let inputLength = 0;
 
+		let wireframeShader;
+
+		let clippingPlane;
+		let planeHelper;
+
 		createModule(/* optional default settings */).then(function(M) {
     	// this is reached when everything is ready, and you can call methods on Module
 			Module = M;
@@ -166,43 +171,41 @@
 			// SCENE
 
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0x242424 );
+			scene.background = new THREE.Color( 0xeeeeee );
 
 			// LIGHTS
 
-			light = new THREE.DirectionalLight( 0xffffff, 5 );
-			light.position.set( 0.5, 1, 0.5 );
-			scene.add( light );
-
-			light2 = new THREE.DirectionalLight( 0xffffff, 5 );
-			light2.position.set( -0.5, 1, 0.5 );
-			scene.add( light2 );
-
-			light3 = new THREE.DirectionalLight( 0xffffff, 5 );
-			light3.position.set( 0.5, 1, -0.5 );
-			scene.add( light3 );
-
-			light4 = new THREE.DirectionalLight( 0xffffff, 5 );
-			light4.position.set( -0.5, 1, -0.5 );
-			scene.add( light4 );
-
-			pointLight = new THREE.PointLight( 0xff7c00, 5, 0, 0 );
-			pointLight.position.set( 0, 0, 100 );
-			scene.add( pointLight );
-
-			ambientLight = new THREE.AmbientLight( 0x323232, 30 );
+			ambientLight = new THREE.AmbientLight( 0xffffff );
 			scene.add( ambientLight );
+
+			light = new THREE.DirectionalLight( 0xffffff, 3 );
+			light.position.set( 0, 10, 0 );
+			scene.add( light );
+			light.castShadow = true; // This light will cast a shadow
+			light.shadow.mapSize.width = 2048; // High resolution for sharper shadows
+			light.shadow.mapSize.height = 2048;
 
             const gridHelper = new THREE.PolarGridHelper( 2, 16 );
 	        scene.add( gridHelper );
 
+			// shadow
+
+			const ground = new THREE.Mesh(
+				new THREE.PlaneGeometry(500, 500),
+				new THREE.ShadowMaterial({ opacity: 0.2 }) // Special material to render shadows softly
+			);
+			ground.rotation.x = -Math.PI / 2; // Make it horizontal
+			ground.position.y = -0.1;
+			ground.receiveShadow = true; // This object will receive shadows
+			scene.add(ground);								
+
+
 			// MATERIALS
 
 			materials = generateMaterials();
-			current_material = 'textured';
+			current_material = 'patches';
 
 
-			// Add cube to scene
             const geometry = new THREE.BufferGeometry();
             geometry.setIndex(new THREE.BufferAttribute(indexBuffer, 1));
             geometry.setAttribute('position', new THREE.BufferAttribute(vertexBuffer, 3));
@@ -210,8 +213,15 @@
             geometry.setAttribute('uv', new THREE.BufferAttribute(uvBuffer, 2));
             geometry.setDrawRange(0, 0);
             mesh = new THREE.Mesh( geometry,  materials[ current_material ] );
+			mesh.castShadow = true; // This object will cast a shadow
             mesh.translateY(1)
             scene.add( mesh );
+
+			// CLIPPING
+			clippingPlane = new THREE.Plane( new THREE.Vector3( 0, 0, 1 ), 0 );
+			planeHelper = new THREE.PlaneHelper(clippingPlane, 5, 0xff0000);
+			scene.add(planeHelper);
+			planeHelper.visible = false;
 
 
 			// RENDERER
@@ -220,6 +230,8 @@
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			renderer.setAnimationLoop( animate );
+			renderer.shadowMap.enabled = true; // Enable shadow maps
+			renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Use soft shadows for better quality
 			container.appendChild( renderer.domElement );
 
 			// CONTROLS
@@ -273,66 +285,135 @@
 
 		function generateMaterials() {
 
-			// environment map
+// environment map
 
-			const path = 'https://threejs.org/examples/textures/cube/pisa/';
-			const format = '.png';
-			const urls = [
-				path + 'px' + format, path + 'nx' + format,
-				path + 'py' + format, path + 'ny' + format,
-				path + 'pz' + format, path + 'nz' + format
-			];
+const path = 'https://threejs.org/examples/textures/cube/pisa/';
+const format = '.png';
+const urls = [
+	path + 'px' + format, path + 'nx' + format,
+	path + 'py' + format, path + 'ny' + format,
+	path + 'pz' + format, path + 'nz' + format
+];
 
-			const cubeTextureLoader = new THREE.CubeTextureLoader();
+const cubeTextureLoader = new THREE.CubeTextureLoader();
 
-			const reflectionCube = cubeTextureLoader.load( urls );
-			const refractionCube = cubeTextureLoader.load( urls );
-			refractionCube.mapping = THREE.CubeRefractionMapping;
+const reflectionCube = cubeTextureLoader.load( urls );
+const refractionCube = cubeTextureLoader.load( urls );
+refractionCube.mapping = THREE.CubeRefractionMapping;
 
-			// toons
-			function createShaderMaterial( shader, light, ambientLight ) {
+// toons
+function createShaderMaterial( shader, light, ambientLight ) {
 
-				const u = THREE.UniformsUtils.clone( shader.uniforms );
+	const u = THREE.UniformsUtils.clone( shader.uniforms );
 
-				const vs = shader.vertexShader;
-				const fs = shader.fragmentShader;
+	const vs = shader.vertexShader;
+	const fs = shader.fragmentShader;
 
-				const material = new THREE.ShaderMaterial( { uniforms: u, vertexShader: vs, fragmentShader: fs } );
+	const material = new THREE.ShaderMaterial( { uniforms: u, vertexShader: vs, fragmentShader: fs } );
 
-				material.uniforms[ 'uDirLightPos' ].value = light.position;
-				material.uniforms[ 'uDirLightColor' ].value = light.color;
+	material.uniforms[ 'uDirLightPos' ].value = light.position;
+	material.uniforms[ 'uDirLightColor' ].value = light.color;
 
-				material.uniforms[ 'uAmbientLightColor' ].value = ambientLight.color;
+	material.uniforms[ 'uAmbientLightColor' ].value = ambientLight.color;
 
-				return material;
+	return material;
 
-				}
+	}
 
-			const toonMaterial1 = createShaderMaterial( ToonShader1, light, ambientLight );
-			const toonMaterial2 = createShaderMaterial( ToonShader2, light, ambientLight );
-			const hatchingMaterial = createShaderMaterial( ToonShaderHatching, light, ambientLight );
-			const dottedMaterial = createShaderMaterial( ToonShaderDotted, light, ambientLight );
+	const wireframeShader = new THREE.ShaderMaterial({
+	uniforms: {
+		thickness: { value: 1.5 }, // Adjust line thickness as needed
+		highlightThickness: { value: 2.0 }, // New uniform to control highlight width
+		baseColor: { value: new THREE.Color(0xeeeeee) }, // Base diffuse color
+		wireColor: { value: new THREE.Color(0xbdbdbd) }, // Wireframe color
+		ambientLight: { value: ambientLight.color }, // Ambient light color
+		directionalLightColor: { value: light.color }, // Directional light color
+		lightDirection: { value: light.position.clone().normalize() } // Normalized light direction
+	},
+	vertexShader: `
+		#include <clipping_planes_pars_vertex>
+		varying vec2 vUv;
+		varying vec3 vNormal;
+		varying vec3 vViewPosition;
+		
+		void main() {
+			vUv = uv;
+			vNormal = normalize(normalMatrix * normal);
+			vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+			vViewPosition = -mvPosition.xyz;
+			#include <clipping_planes_vertex>
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+	`,
+	fragmentShader: `
+		#include <clipping_planes_pars_fragment>
+		varying vec3 vViewPosition;
+		uniform float thickness;
+		uniform float highlightThickness; // controls the width of the red highlight
+		uniform vec3 baseColor;
+		uniform vec3 wireColor;
+		uniform vec3 ambientLight;
+		uniform vec3 directionalLightColor;
+		uniform vec3 lightDirection;
 
-			const texture = new THREE.TextureLoader().load( 'https://threejs.org/examples/textures/uv_grid_opengl.jpg' );
-			texture.wrapS = THREE.RepeatWrapping;
-			texture.wrapT = THREE.RepeatWrapping;
-			texture.colorSpace = THREE.SRGBColorSpace;
+		varying vec2 vUv;
+		varying vec3 vNormal;
 
-			const materials = {
-				'shiny': new THREE.MeshStandardMaterial( { color: 0x9c0000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0 } ),
-				'chrome': new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube } ),
-				'liquid': new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: refractionCube, refractionRatio: 0.90 } ),
-				'matte': new THREE.MeshPhongMaterial( { specular: 0x494949, shininess: 1 } ),
-				'flat': new THREE.MeshLambertMaterial( { flatShading: true } ),
-				'textured': new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 1, map: texture } ),
-				'plastic': new THREE.MeshPhongMaterial( { specular: 0xc1c1c1, shininess: 250 } ),
-				'toon1': toonMaterial1,
-				'toon2': toonMaterial2,
-				'hatching': hatchingMaterial,
-				'dotted': dottedMaterial
-			};
+		void main() {
+		// Perform the built-in clipping. Fragments on the clipped side are discarded.
+		#include <clipping_planes_fragment>
 
-			return materials;
+		// Now that only non-discarded fragments remain, we add a red highlight
+		// for fragments that are close to any clipping plane.
+		float clipHighlight = 0.0;
+		#if NUM_CLIPPING_PLANES > 0
+		for (int i = 0; i < NUM_CLIPPING_PLANES; i++) {
+		vec4 plane = clippingPlanes[i];
+		float d = abs(dot(vViewPosition, plane.xyz) - plane.w);
+		// Use fwidth on 'd' and scale with highlightThickness to define a narrow band.
+		float h = 1.0 - smoothstep(0.0, highlightThickness * fwidth(d), d);
+		clipHighlight = max(clipHighlight, h);
+		}
+		#endif
+
+		// Diffuse shading using ambient and directional lights.
+		float lambert = max(dot(vNormal, normalize(lightDirection)), 0.0);
+		vec3 diffuseColor = baseColor * (ambientLight + directionalLightColor * lambert);
+
+		// Compute anti-aliased wireframe edges along the UV boundaries.
+		vec2 afwidth = fwidth(vUv);
+		float lineU = 1.0 - smoothstep(0.0, thickness * afwidth.x, min(vUv.x, 1.0 - vUv.x));
+		float lineV = 1.0 - smoothstep(0.0, thickness * afwidth.y, min(vUv.y, 1.0 - vUv.y));
+		float edge = max(lineU, lineV);
+
+		// Blend the diffuse shading with the wireframe color.
+		vec3 finalColor = mix(diffuseColor, wireColor, edge);
+
+		// Blend in red for fragments near a clipping plane boundary.
+		finalColor = mix(finalColor, vec3(1.0, 0.0, 0.0), clipHighlight);
+
+		gl_FragColor = vec4(finalColor, 1.0);
+		}
+		`,
+
+			transparent: true,
+			side: THREE.DoubleSide,
+			clipping: true,
+			clipShadows: true,
+		});
+
+		const materials = {
+			'shiny': new THREE.MeshStandardMaterial( { color: 0x9c0000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0, side: THREE.DoubleSide } ),
+			'chrome': new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube, side: THREE.DoubleSide } ),
+			'matte': new THREE.MeshPhongMaterial( { specular: 0x494949, shininess: 1, side: THREE.DoubleSide } ),
+			'flat': new THREE.MeshLambertMaterial( { flatShading: true, side: THREE.DoubleSide } ),
+			'plastic': new THREE.MeshPhongMaterial( { specular: 0xc1c1c1, shininess: 250, side: THREE.DoubleSide } ),
+			'patches': wireframeShader,
+		};
+
+
+
+		return materials;
 
 		}
 
@@ -358,7 +439,7 @@
                     mesh.geometry.index.needsUpdate = true;
                     mesh.geometry.attributes.uv.needsUpdate = true;
                     mesh.geometry.setDrawRange(0, numFaceIndeces);
-                    // mesh.geometry.computeVertexNormals();
+                    mesh.geometry.computeVertexNormals();
 
                 };
                 // Wait for the loading screen to show before reading the file
@@ -380,24 +461,43 @@
 					current_material = id;
 
 					mesh.material = materials[ id ];
-					mesh.enableUvs = ( current_material === 'textured' ) ? true : false;
+					mesh.enableUvs = true;
 					mesh.enableColors = ( current_material === 'colors' || current_material === 'multiColors' ) ? true : false;
 					toUpdate = true;
 				};
 
 			};
 
+			function startClippingUpdate() {
+				planeHelper.visible = true;
+				// renderer.clippingPlanes = [];
+			}
+			function endClippingUpdate() {
+				planeHelper.visible = false;
+				if(guiState['clipping enabled']) {
+					renderer.clippingPlanes = [clippingPlane];
+				}else{
+					renderer.clippingPlanes = [];
+				}
+			}
+
+			// Function to update the clipping plane normal based on the current theta and phi values
+			function updateClippingPlaneNormal() {
+				// Create a spherical coordinate with radius 1 (unit vector)
+				const spherical = new THREE.Spherical(1, guiState.theta, guiState.phi);
+				// Convert spherical coordinates to a Cartesian vector
+				const normal = new THREE.Vector3().setFromSpherical(spherical);
+				// Update the clipping plane's normal
+				clippingPlane.normal.copy(normal);
+				// (Optionally, if you want the plane to update, you might need to mark it as needing update.)
+				// clippingPlane.normal.needsUpdate = true; // (not necessary in Three.js but sometimes helpful)
+				startClippingUpdate();
+			}
+
 
 			guiState = {
 
-				material: 'shiny',
-
-
-				resolution: 100,
-				isolation: 1000,
-
-
-
+				material: 'patches',
 				// thickness:0.5,
 
 				'x offset': 0,
@@ -409,6 +509,11 @@
                 'z rotation': 0,
 
 				'scale': 1,
+
+				'clipping enabled': false,
+				'clipping plane distance': 0,
+				'theta': Math.PI / 2, // elevation angle; Math.PI/2 gives a horizontal plane normal (0,1,0)
+  				'phi': 0,            // azimuth angle; 0 points along positive X
 
                 'fileInput': function () {
                     const fileElem = document.getElementById('fileInput')
@@ -480,14 +585,14 @@
 
 			// material (type)
 
-			h = gui.addFolder( 'Materials' );
+			// h = gui.addFolder( 'Materials' );
 
-			for ( const m in materials ) {
+			// for ( const m in materials ) {
 
-				guiState[ m ] = createHandler( m );
-				h.add( guiState, m ).name( m );
+			// 	guiState[ m ] = createHandler( m );
+			// 	h.add( guiState, m ).name( m );
 
-			}
+			// }
 
 			
 
@@ -509,7 +614,20 @@
             h.add( guiState, 'z rotation', -Math.PI, Math.PI, 0.01 );
 
 			h.add( guiState, 'scale', 0.1, 3, 0.01 );
-
+			h = gui.addFolder('Clipping');
+			h.add(guiState, 'clipping enabled').name('Enabled').onChange( function ( enabled ) {
+				if ( enabled ) {
+					renderer.clippingPlanes = [clippingPlane];
+				} else {
+					renderer.clippingPlanes = [];
+				}
+				
+			} );
+			h.add(guiState, 'clipping plane distance').min(-2).max(2).step(0.01).onChange( function ( distance ) {
+				clippingPlane.constant = distance;startClippingUpdate();
+			} ).onFinishChange(endClippingUpdate);
+			h.add(guiState, 'theta', -Math.PI, Math.PI, 0.01).name('Plane Elevation').onChange(updateClippingPlaneNormal).onFinishChange(endClippingUpdate);
+			h.add(guiState, 'phi', -Math.PI, Math.PI, 0.01).name('Plane Azimuth').onChange(updateClippingPlaneNormal).onFinishChange(endClippingUpdate);
 			h = gui.addFolder( 'Export' );  
             h.add( guiState, "save to bv" ).name( "Export .bv" );
 			h.add( guiState, "save to igs" ).name( "Export .igs" );

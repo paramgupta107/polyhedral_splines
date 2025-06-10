@@ -99,6 +99,8 @@ void EvaluatedMeshWriter::create_bezier_surface_mesh(const Patch a_Patch, int n,
             MeshType::Point p = de_casteljau_surface(u, v, a_Patch);
             points[i][j] = p;
             grid[i][j] = mesh->add_vertex(p);
+            MeshType::TexCoord2D texcoord(u, v);
+            mesh->set_texcoord2D(grid[i][j], texcoord);
         }
     }
 
