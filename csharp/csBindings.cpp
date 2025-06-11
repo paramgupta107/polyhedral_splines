@@ -5,6 +5,7 @@
 #include "Patch/Patch.hpp"
 #include "PatchConsumer/BVWriter.hpp"
 #include "PatchConsumer/IGSWriter.hpp"
+#include "PatchConsumer/STEPWriter.hpp"
 
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <vector>
@@ -311,6 +312,10 @@ extern "C"
     
     IGSWriter* IGSWriterCreate_Interop(const char* filename) {
         return new IGSWriter(filename);
+    }
+
+    STEPWriter* STEPWriterCreate_Interop(const char* filename) {
+        return new STEPWriter(filename);
     }
 
 }

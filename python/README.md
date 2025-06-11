@@ -131,6 +131,8 @@ Concrete subclasses:
 
 *  **IGSWriter**(`filename`)
 
+*  **STEPWriter**(`filename`)
+
 ###  `process_mesh(control_mesh, consumer, is_deg_raise=False)`
 
 Runs the full pipeline in C++.

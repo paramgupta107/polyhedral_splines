@@ -620,6 +620,22 @@ namespace PolyhedralNetSplines
         private static extern IntPtr IGSWriterCreate_Interop(string filename);
     }
 
+    /// <summary>
+    /// .step surface writer
+    /// </summary>
+    public class STEPWriter : PatchConsumer
+    {
+        public STEPWriter(string filename) : base(STEPWriterCreate_Interop(filename))
+        {
+            if (Handle == IntPtr.Zero)
+                throw new Exception($"Failed to create STEPWriter for file: {filename}");
+        }
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr STEPWriterCreate_Interop(string filename);
+    }
+
+
 
     
     public static class PNS
@@ -720,6 +736,23 @@ namespace PolyhedralNetSplines
             }
         }
 
+        /// <summary>
+        /// Generate an STEP file from a mesh file.
+        /// </summary>
+        /// <param name="controlMeshFile">Path to the control net</param>
+        /// <param name="outputFile">Destination .step filename</param>
+        /// <param name="degreeRaise">Raise degree to 3. Defaults to false</param>
+        public static void CreateSTEPFromFile(string controlMeshFile, string outputFile = "output.step", bool degreeRaise = false)
+        {
+            PNSControlMesh mesh = PNSControlMesh.FromFile(controlMeshFile);
+            using (var writer = new STEPWriter(outputFile))
+            {
+                writer.Start();
+                ProcessMesh(mesh, writer, degreeRaise);
+                writer.Stop();
+            }
+        }
+
         /// <summary> 
         /// Write a BV file from a control mesh.
         /// </summary>
@@ -751,6 +784,25 @@ namespace PolyhedralNetSplines
                 throw new ArgumentNullException(nameof(controlMesh));
 
             using (var writer = new IGSWriter(outputFile))
+            {
+                writer.Start();
+                ProcessMesh(controlMesh, writer, degreeRaise);
+                writer.Stop();
+            }
+        }
+
+        /// <summary>
+        /// Write an STEP file from a control mesh.
+        /// </summary>
+        /// <param name="controlMesh">Control Net</param>
+        /// <param name="outputFile">Destination .step filename</param>
+        /// <param name="degreeRaise">Raise degree to 3. Default is false</param>
+        public static void CreateSTEP(PNSControlMesh controlMesh, string outputFile = "output.step", bool degreeRaise = false)
+        {
+            if (controlMesh == null)
+                throw new ArgumentNullException(nameof(controlMesh));
+
+            using (var writer = new STEPWriter(outputFile))
             {
                 writer.Start();
                 ProcessMesh(controlMesh, writer, degreeRaise);

@@ -9,6 +9,7 @@
 #include "Patch/Patch.hpp"
 #include "PatchConsumer/BVWriter.hpp"
 #include "PatchConsumer/IGSWriter.hpp"
+#include "PatchConsumer/STEPWriter.hpp"
 
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
@@ -272,6 +273,13 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
         .def("start", &IGSWriter::start)
         .def("stop", &IGSWriter::stop)
         .def("consume", &IGSWriter::consume);
+    py::class_<STEPWriter, PatchConsumer>(m, "STEPWriter", R"pbdoc(
+        *.step* surface writer.
+    )pbdoc")
+        .def(py::init<const std::string&>(), py::arg("filename"), "Args:\n    filename (str): Destination file.")
+        .def("start", &STEPWriter::start)
+        .def("stop", &STEPWriter::stop)
+        .def("consume", &STEPWriter::consume);
     m.def("process_mesh",
         &process_mesh,
         py::arg("Pns_control_mesh"),

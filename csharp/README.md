@@ -138,6 +138,7 @@ Abstract class for BVWriter and IGSWriter
 
 ### `BVWriter(filename)`
 ### `IGSWriter(filename)`
+### `STEPWriter(filename)`
 
 
 ### `PNS`
@@ -151,6 +152,8 @@ Container class for library methods.
 |  `CreateBV(controlMesh, outputFile, degreeRaise)`               |  Write a BV file from a control mesh.                             |
 |  `CreateIGSFromFile(controlMeshFile, outputFile, degreeRaise)`  |  Write an IGS file from a mesh file.                              |
 |  `CreateIGS(controlMesh, outputFile, degreeRaise)`              |  Write an IGS file from a control mesh.                           |
+|  `CreateSTEPFromFile(controlMeshFile, outputFile, degreeRaise)` |  Write an STEP file from a mesh file.                             |
+|  `CreateSTEP(controlMesh, outputFile, degreeRaise)`             |  Write an STEP file from a control mesh.                          |
 
 ---
 

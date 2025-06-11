@@ -13,6 +13,7 @@
 #include "PatchConsumer/PatchConsumer.hpp"
 #include "PatchConsumer/BVWriter.hpp"
 #include "PatchConsumer/IGSWriter.hpp"
+#include "PatchConsumer/STEPWriter.hpp"
 #include "ProcessMesh.hpp"
 #include "Helper/simple_arg.hpp"
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
     SimpleArg p{argv[0]};
     p.add<bool>('d', "DEGREE_RAISE", "raise degree 2 patches to degree 3");
     p.add<std::string>('f', "FORMAT", "output format", false, "bv",
-                       {"bv", "igs"});
+                       {"bv", "igs", "step"});
     p.addPositional<std::string>("input",   "input file");
 
     if (!p.parse(argc, argv) || p.help()) {
@@ -48,9 +49,11 @@ int main(int argc, char **argv)
     PatchConsumer* t_Writer;
     if (t_Format == "bv") {
         t_Writer = new BVWriter(t_FileName);
-    } else { // t_Format == "igs"
+    } else if(t_Format == "igs") {
         t_Writer = new IGSWriter(t_FileName);
-    } 
+    } else{ // t_Format == "step"
+        t_Writer = new STEPWriter(t_FileName);
+    }
 
     // Convert mesh into Patches (contain BB-coefficients) and write patches into .bv file
     process_mesh(t_Mesh, t_Writer, t_IsDegRaise);

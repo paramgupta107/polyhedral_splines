@@ -8,6 +8,7 @@
 #include "PatchConsumer/PatchConsumer.hpp"
 #include "PatchConsumer/BVWriter.hpp"
 #include "PatchConsumer/IGSWriter.hpp"
+#include "PatchConsumer/STEPWriter.hpp"
 #include "ProcessMesh.hpp"
 #include "PatchConsumer/EvaluatedMeshWriter.hpp"
 
@@ -166,6 +167,27 @@ extern "C" {
             return 1;
         }
         PatchConsumer* t_Writer = new IGSWriter("output.igs");
+
+        // Convert mesh into Patches (contain BB-coefficients) and write patches into .bv file
+        const bool t_IsDegRaise = false;
+        process_mesh(mesh, t_Writer, t_IsDegRaise);
+        delete t_Writer;
+        return 0;
+    }
+}
+
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE  
+    int getstep(const unsigned char* data, int length) {
+        std::string str = std::string(data, data + length);
+        std::istringstream objStream(str);
+        MeshType mesh;
+        OpenMesh::IO::Options options;
+        if (!OpenMesh::IO::read_mesh(mesh, objStream, "obj", options)) {
+            std::cerr << "Could not read mesh" << std::endl;
+            return 1;
+        }
+        PatchConsumer* t_Writer = new STEPWriter("output.step");
 
         // Convert mesh into Patches (contain BB-coefficients) and write patches into .bv file
         const bool t_IsDegRaise = false;

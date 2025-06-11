@@ -1,4 +1,4 @@
-from .polyhedral_net_splines import Pns_control_mesh, get_patch_builders, PatchBuilder, Patch, PatchConsumer, BVWriter, IGSWriter, process_mesh
+from .polyhedral_net_splines import Pns_control_mesh, get_patch_builders, PatchBuilder, Patch, PatchConsumer, BVWriter, IGSWriter, STEPWriter,process_mesh
 # from .extras import *
 
 __all__ = ["Pns_control_mesh", "get_patch_builders", "PatchBuilder", "Patch", "PatchConsumer", "BVWriter", "IGSWriter", "process_mesh", "create_bv_from_file", "create_igs_from_file", "create_bv", "create_igs"]
@@ -39,6 +39,23 @@ def create_igs_from_file(control_mesh_file, output_file="output.igs", degreeRais
     control_mesh = Pns_control_mesh.from_file(control_mesh_file)
     igsWriter = IGSWriter(output_file)
     process_mesh(control_mesh, igsWriter, degreeRaise)
+
+def create_step_from_file(control_mesh_file, output_file="output.step", degreeRaise = False):
+    """
+    Generate a **STEP** file from a mesh on disk.
+
+    Args:
+        control_mesh_file (str): Path to the input control net.
+        output_file (str, optional): Destination ``*.step`` file name.
+        degree_raise (bool, optional):
+            Raise degree to 3. Default is ``False``.
+
+    Returns:
+        None
+    """
+    control_mesh = Pns_control_mesh.from_file(control_mesh_file)
+    stepWriter = STEPWriter(output_file)  # Assuming IGSWriter can also handle STEP format
+    process_mesh(control_mesh, stepWriter, degreeRaise)
 
 def create_bv(control_mesh, output_file="output.bv", degreeRaise = False):
     """
@@ -85,3 +102,26 @@ def create_igs(control_mesh, output_file="output.igs", degreeRaise = False):
                 t_Patch.degRaise
             igsWriter.consume(t_Patch)
     igsWriter.stop()
+
+def create_step(control_mesh, output_file="output.step", degreeRaise = False):
+    """
+    Write a **STEP** file from a control mesh.
+
+    Args:
+        control_mesh (Pns_control_mesh): control net.
+        output_file (str, optional): Destination ``*.step`` file name.
+        degree_raise (bool, optional): Raise degree to 3. Default is ``False``.
+
+    Returns:
+        None
+    """
+    stepWriter = STEPWriter(output_file)
+    stepWriter.start()
+    t_PatchBuilders = get_patch_builders(control_mesh)
+    for patchBuilder in t_PatchBuilders:
+        patches = patchBuilder.build_patches(control_mesh)
+        for t_Patch in patches:
+            if degreeRaise: 
+                t_Patch.degRaise
+            stepWriter.consume(t_Patch)
+    stepWriter.stop()

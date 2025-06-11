@@ -108,6 +108,7 @@
         let processMesh;
 		let getBvFile;
 		let getigsFile;
+		let getStepFile;
 
 		let Module;
 		let container, stats;
@@ -152,6 +153,7 @@
 			processMesh = Module.cwrap("evaluatedPnsMesh", "number", ['number', 'number', 'number', 'number', 'number']);
 			getBvFile = Module.cwrap("getBv", "number", ['number', 'number', 'number']);
 			getigsFile = Module.cwrap("getigs", "number", ['number', 'number', 'number']);
+			getStepFile = Module.cwrap("getstep", "number", ['number', 'number', 'number']);
             vertexBufferPtr = Module._malloc(maxVertices * 3 * Float32Array.BYTES_PER_ELEMENT);
             indexBufferPtr = Module._malloc(maxVertices * 6 * Uint32Array.BYTES_PER_ELEMENT);
             uvBufferPtr = Module._malloc(maxVertices * 2 * Float32Array.BYTES_PER_ELEMENT);
@@ -572,6 +574,31 @@ function createShaderMaterial( shader, light, ambientLight ) {
 					document.body.removeChild(link);
 				},
 
+				'save to step': function () {
+					let processed = getStepFile(inputBufferPtr, inputLength);
+					if (processed != 0) {
+						alert("Error writing to .step file");
+						return;
+					}
+					// Read the file from the virtual filesystem
+					var fileContent = Module.FS.readFile('output.step');
+
+					// Create a Blob from the file content
+					var blob = new Blob([fileContent], { type: 'text/plain' });
+
+					// Create an anchor element to trigger the download
+					var link = document.createElement('a');
+					link.href = URL.createObjectURL(blob);
+					link.download = 'output.step';  // Filename for the downloaded file
+
+					// Programmatically click the link to trigger the download
+					document.body.appendChild(link);
+					link.click();
+
+					// Clean up the DOM
+					document.body.removeChild(link);
+				},
+
 				dummy: function () {}
 
 			};
@@ -631,6 +658,7 @@ function createShaderMaterial( shader, light, ambientLight ) {
 			h = gui.addFolder( 'Export' );  
             h.add( guiState, "save to bv" ).name( "Export .bv" );
 			h.add( guiState, "save to igs" ).name( "Export .igs" );
+			h.add( guiState, "save to step" ).name( "Export .step" );
 
 			h = gui.onChange( event => {
 				toUpdate = true;
