@@ -210,6 +210,11 @@ extern "C"
             patchesOut[i] = new Patch(patches[i]);
         }
     }
+
+    void PatchBuilderDegRaise_Interop(PatchBuilder* builder) {
+        if (!builder) return;
+        builder->degRaise();
+    }
     
     
 //-----------------------------------------------------------------------------

@@ -348,6 +348,14 @@ namespace PolyhedralNetSplines
                 Marshal.FreeHGlobal(patchArray);
             }
         }
+
+        /// <summary>
+        /// Elevate degree up to 3.
+        /// </summary>
+        public void DegRaise()
+        {
+            PatchBuilderDegRaise_Interop(Handle);
+        }
         
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderDestroy_Interop(IntPtr builder);
@@ -384,6 +392,9 @@ namespace PolyhedralNetSplines
         
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderBuildPatches_Interop(IntPtr builder, IntPtr mesh, IntPtr patchArray);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PatchBuilderDegRaise_Interop(IntPtr builder);
         
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr PatchBuilder_Clone_Interop(IntPtr builder);

@@ -108,6 +108,7 @@ Returns a list of `PatchBuilder` instances covering the mesh.
 |  `mask`  | Linear transform to generate Patches from neighborhood. |
 |  `num_patches`  | Number of patches produced. |
 |  `build_patches(mesh)`  | Returns a list of `Patch`. |
+|  `degRaise()`  | Elevate both degrees to 3. Modifies the mask so that it generates patches of degree bi-3.|
 
 
 ###  `Patch`

@@ -12,13 +12,13 @@ void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool 
 	// Face iteration
 	for (auto patchBuilder = t_PatchBuilders.begin(); patchBuilder != t_PatchBuilders.end(); ++patchBuilder)
 	{
+		if(a_IsDegRaise)
+		{
+			patchBuilder->degRaise();
+		}
 		auto t_FacePatches = patchBuilder->buildPatches(a_Mesh);
 		for (auto t_Patch : t_FacePatches)
 		{
-			if(a_IsDegRaise)
-			{
-				t_Patch.degRaise();
-			}
 
 			a_Consumer->consume(t_Patch);
 		}

@@ -232,7 +232,16 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
 
                 Returns:
                     List[Patch]
-                )pbdoc");
+                )pbdoc")
+        .def("degRaise",
+            [](PatchBuilder& pb) {
+                pb.degRaise();
+            }, R"pbdoc(
+                Elevate degree upto 3. Modifies the mask so that it generates patches of degree bi-3.
+
+                Returns:
+                    None
+            )pbdoc");
     m.def("get_patch_builders",
             &getPatchBuilders,
             py::arg("mesh"),

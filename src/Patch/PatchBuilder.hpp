@@ -35,4 +35,5 @@ class PatchBuilder
         std::vector<VertexHandle> getNeighborVerts() const;
         Matrix getMask() const;
         const PatchConstructor* getPatchConstructor() const;
+        void degRaise();
 };
