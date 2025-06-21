@@ -141,3 +141,10 @@ void PatchBuilder::degRaise(){
     m_DegU = t_UR;
     m_DegV = t_VR;
 }
+
+int PatchBuilder::numPatches() const{
+    if(m_NumOfPatches > 0){
+        return m_NumOfPatches;
+    }
+    return (m_DegU + 1) * (m_DegV + 1);
+}

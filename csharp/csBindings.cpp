@@ -179,7 +179,7 @@ extern "C"
     
     int PatchBuilderGetNumPatches_Interop(const PatchBuilder* builder) {
         if (!builder) return 0;
-        return builder->m_NumOfPatches;
+        return builder->numPatches();
     }
     
     int PatchBuilderGetDegU_Interop(const PatchBuilder* builder) {

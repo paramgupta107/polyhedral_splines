@@ -36,4 +36,5 @@ class PatchBuilder
         Matrix getMask() const;
         const PatchConstructor* getPatchConstructor() const;
         void degRaise();
+        int numPatches() const;
 };
