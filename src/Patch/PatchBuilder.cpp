@@ -146,5 +146,8 @@ int PatchBuilder::numPatches() const{
     if(m_NumOfPatches > 0){
         return m_NumOfPatches;
     }
-    return (m_DegU + 1) * (m_DegV + 1);
+    const int t_NumOfCCPtsPerPatch = (m_DegU + 1) * (m_DegV + 1);
+    const int totalRows = m_Mask.getRows();
+    const int t_NumOfPatches = totalRows / t_NumOfCCPtsPerPatch;
+    return t_NumOfPatches;
 }
