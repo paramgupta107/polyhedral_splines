@@ -18,12 +18,15 @@ void PnSpline::initialize(){
     }
 }
 
-PnSpline::PnSpline(MeshType& controlMesh)
+PnSpline::PnSpline(MeshType& controlMesh, bool degRaise)
     : controlMesh(controlMesh) {
     initialize();
+    if (degRaise) {
+        this->degRaise();
+    }
 }
 
-PnSpline::PnSpline(std::vector<std::array<double,3>>& controlPoints, std::vector<std::vector<uint>>& controlIndices) {
+PnSpline::PnSpline(std::vector<std::array<double,3>>& controlPoints, std::vector<std::vector<uint>>& controlIndices, bool degRaise) {
     for (const auto& point : controlPoints) {
         controlMesh.add_vertex({point[0], point[1], point[2]});
     }
@@ -35,6 +38,9 @@ PnSpline::PnSpline(std::vector<std::array<double,3>>& controlPoints, std::vector
         controlMesh.add_face(face_vhandles);
     }
     initialize();
+    if (degRaise) {
+        this->degRaise();
+    }
 }
     
 
@@ -72,4 +78,10 @@ std::vector<uint> PnSpline::updateControlMesh(std::vector<std::array<double,3>>&
         }
     }
     return updatedPatches;
+}
+
+void PnSpline::degRaise() {
+    for (auto& patchBuilder : patchBuilders) {
+        patchBuilder.degRaise();
+    }
 }
