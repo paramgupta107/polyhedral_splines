@@ -24,10 +24,9 @@ class PatchBuilder
         int m_DegV = -1;
 
 
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches)
-            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_NumOfPatches(a_NumOfPatches) {};
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV)
-            : m_NBVertexHandles(a_NBVertexHandles), m_Mask(a_Mask), m_PatchConstructor(a_PatchConstructor), m_DegU(a_DegU), m_DegV(a_DegV) {};
+        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches);
+        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV);
+        
         PatchBuilder(const PatchBuilder& a_PatchBuilder)
             : m_NBVertexHandles(a_PatchBuilder.m_NBVertexHandles), m_Mask(a_PatchBuilder.m_Mask), m_PatchConstructor(a_PatchBuilder.m_PatchConstructor), m_NumOfPatches(a_PatchBuilder.m_NumOfPatches), m_DegU(a_PatchBuilder.m_DegU), m_DegV(a_PatchBuilder.m_DegV) {};
         PatchBuilder& operator=(const PatchBuilder& a_PatchBuilder);
