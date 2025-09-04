@@ -43,6 +43,36 @@ bool are_verts_of_face_all_4_valence(const MeshType& a_Mesh, const FaceHandle& a
     return true;
 }
 
+bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle){
+    int t_Valence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
+    auto t_FHs = get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
+    if(t_Valence != t_FHs.size()){
+        return false;
+    }
+    int t_Tri_Count = 0;
+    for(int i=0; i<t_FHs.size(); i++)
+    {
+        if(!is_triangle(a_Mesh, t_FHs[i]) && !is_quad(a_Mesh, t_FHs[i]))
+        {
+            return false;
+        }
+
+        if(is_triangle(a_Mesh, t_FHs[i]))
+        {
+            t_Tri_Count++;
+            if(!is_triangle(a_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
+                !is_triangle(a_Mesh, t_FHs[(i+1)%t_FHs.size()])){
+                return false;
+                }
+        }
+    }
+    if (t_Tri_Count != 2)
+    {
+        return false;
+    }
+    return true;
+}
+
 void set_vert_vector_to_default(const int a_Size, std::vector<VertexHandle>& a_VertexHandles)
 {
     a_VertexHandles.clear();
@@ -118,6 +148,15 @@ std::vector<VertexHandle> get_two_layers_verts_around_vert(const MeshType& a_Mes
     t_AllVerts.erase(unique(t_AllVerts.begin(), t_AllVerts.end()), t_AllVerts.end());
 
     return t_AllVerts;
+}
+
+std::vector<VertexHandle> get_surrounding_verts(const MeshType& a_Mesh, const VertexHandle& a_VertHandle){
+    std::vector<VertexHandle> t_surrounding_verts;
+    for(auto vv_it = a_Mesh.cvv_iter(a_VertHandle); vv_it.is_valid(); ++vv_it)
+    {
+        t_surrounding_verts.push_back(*vv_it);
+    }
+    return t_surrounding_verts;
 }
 
 

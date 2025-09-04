@@ -63,10 +63,21 @@ bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, 
 
     // The first layer of surrounded faces should all be triangles
     auto t_NBFaces = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
+    if(t_NBFaces.size() != t_Valence)
+    {
+        return false;
+    }
     for(auto t_Face : t_NBFaces)
     {
         if(!Helper::is_triangle(a_Mesh, t_Face))
         {
+            return false;
+        }
+    }
+
+    auto surrounding_verts = Helper::get_surrounding_verts(a_Mesh, a_VertexHandle);
+    for(auto vert : surrounding_verts){
+        if(!Helper::is_polar_surrounding_vert(a_Mesh, vert)){
             return false;
         }
     }

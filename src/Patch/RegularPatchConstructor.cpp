@@ -21,24 +21,8 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, 
     {
         return false;
     }
-    int t_Tri_Count = 0;
-    for(int i=0; i<t_FHs.size(); i++)
-    {
-        if(!Helper::is_triangle(a_Mesh, t_FHs[i]) && !Helper::is_quad(a_Mesh, t_FHs[i]))
-        {
-            return false;
-        }
-
-        if(Helper::is_triangle(a_Mesh, t_FHs[i]))
-        {
-            t_Tri_Count++;
-            if(!Helper::is_triangle(a_Mesh, t_FHs[(i-1)%t_FHs.size()]) &&
-                !Helper::is_triangle(a_Mesh, t_FHs[(i+1)%t_FHs.size()])){
-                return false;
-                }
-        }
-    }
-    if (t_Tri_Count != 0 && t_Tri_Count != 2)
+    // The first layer of faces should all be quad or 2 consecutive triangles
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FHs) && !Helper::is_polar_surrounding_vert(a_Mesh, a_VertHandle))
     {
         return false;
     }
