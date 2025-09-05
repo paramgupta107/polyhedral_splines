@@ -57,7 +57,7 @@ PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexH
     auto t_NBVertexHandles = initNeighborVerts(a_VertHandle, a_Mesh);
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return PatchBuilder(t_NBVertexHandles, m_Mask, this, t_PatchDegU, t_PatchDegV);
+    return PatchBuilder(a_Mesh, t_NBVertexHandles, m_Mask, this, t_PatchDegU, t_PatchDegV);
 }
 
 

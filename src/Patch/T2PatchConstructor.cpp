@@ -85,7 +85,7 @@ PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle,
     auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     const int a_NumOfPatch = 16;
-    return PatchBuilder(t_NBVerts, m_Mask, this, a_NumOfPatch);
+    return PatchBuilder(a_Mesh, t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
 

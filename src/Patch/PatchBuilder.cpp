@@ -3,24 +3,22 @@
 #include "PatchBuilder.hpp"
 #include "PatchConstructor.hpp"
 
-PatchBuilder::PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches){
+PatchBuilder::PatchBuilder(const MeshType& a_Mesh, std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches){
     m_NumOfPatches = a_NumOfPatches;
     int t_NumOfCCPtsPerPatch = a_Mask.getRows() / m_NumOfPatches;
     const int t_Deg = sqrt(t_NumOfCCPtsPerPatch) - 1;
     m_DegU = t_Deg;
     m_DegV = t_Deg;
-    m_NBVertexHandles = a_NBVertexHandles;
-    m_Mask = a_Mask;
     m_PatchConstructor = a_PatchConstructor;
+    initializeMaskAndNeighborVertices(a_Mesh, a_NBVertexHandles, a_Mask);
 };
-PatchBuilder::PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV){
+PatchBuilder::PatchBuilder(const MeshType& a_Mesh,std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV){
     m_DegU = a_DegU;
     m_DegV = a_DegV;
     int t_NumOfCCPtsPerPatch = (m_DegU + 1) * (m_DegV + 1);
     m_NumOfPatches = a_Mask.getRows() / t_NumOfCCPtsPerPatch;
-    m_NBVertexHandles = a_NBVertexHandles;
-    m_Mask = a_Mask;
     m_PatchConstructor = a_PatchConstructor;
+    initializeMaskAndNeighborVertices(a_Mesh, a_NBVertexHandles, a_Mask);
 };
 
 PatchBuilder& PatchBuilder::operator=(const PatchBuilder& a_PatchBuilder){
@@ -145,4 +143,34 @@ void PatchBuilder::degRaise(){
 
 int PatchBuilder::numPatches() const{
     return m_NumOfPatches;
+}
+
+void PatchBuilder::initializeMaskAndNeighborVertices(const MeshType& a_Mesh, std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask) {
+    if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
+        m_NBVertexHandles = a_NBVertexHandles;
+        m_Mask = a_Mask;
+        return;
+    }
+    OpenMesh::VPropHandleT<VertexMapping> vertexMapping;
+    a_Mesh.get_property_handle(vertexMapping, "vertex_mapping");
+    // auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+    std::set<VertexHandle> uniqueHandles;
+    for (auto vh : a_NBVertexHandles) {
+        for (auto originalVh : a_Mesh.property(vertexMapping, vh).indices) {
+            uniqueHandles.insert(originalVh);
+        }
+    }
+    m_NBVertexHandles.assign(uniqueHandles.begin(), uniqueHandles.end());
+    m_Mask = Matrix(a_Mask.getRows(), m_NBVertexHandles.size());
+    for (int row = 0; row < a_Mask.getRows(); ++row) {
+        for (int i = 0; i < a_NBVertexHandles.size(); ++i) {
+            auto vh = a_NBVertexHandles[i];
+            for (int j = 0; j < a_Mesh.property(vertexMapping, vh).indices.size(); ++j) {
+                auto originalVh = a_Mesh.property(vertexMapping, vh).indices[j];
+                int colIdx = std::distance(uniqueHandles.begin(), uniqueHandles.find(originalVh));
+                m_Mask(row, colIdx) += a_Mask(row, i) * a_Mesh.property(vertexMapping, vh).mapping[j];
+            }
+        }
+    }
+    
 }

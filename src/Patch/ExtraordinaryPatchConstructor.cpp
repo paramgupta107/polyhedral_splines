@@ -52,9 +52,9 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
     // The first layer of faces should all be quad or 2 consecutive triangles
     auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
     if(!Helper::are_faces_all_quads(a_Mesh, t_FirstLayerFaces) && !Helper::is_polar_surrounding_vert(a_Mesh, a_VertexHandle))
-        {
-            return false;
-        }
+    {
+        return false;
+    }
 
     // // The surrounding faces should be either quad or triangle and no more than two
     // // consecutive triangles.
@@ -174,7 +174,7 @@ PatchBuilder ExtraordinaryPatchConstructor::getPatchBuilder(const VertexHandle& 
     }
 
 
-    return PatchBuilder(t_NBVerts, t_mask, this, t_NumOfPatches);
+    return PatchBuilder(a_Mesh, t_NBVerts, t_mask, this, t_NumOfPatches);
 }
 
 std::string ExtraordinaryPatchConstructor::getGroupName() const

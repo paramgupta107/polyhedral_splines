@@ -40,7 +40,7 @@ PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_Vert
     Matrix t_mask = m_Mask;
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
-    return PatchBuilder(t_NBVertexHandles, t_mask, this, t_PatchDegU, t_PatchDegV);
+    return PatchBuilder(a_Mesh, t_NBVertexHandles, t_mask, this, t_PatchDegU, t_PatchDegV);
 }
 
 /*

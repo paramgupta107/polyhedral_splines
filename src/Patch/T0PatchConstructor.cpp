@@ -62,7 +62,7 @@ PatchBuilder T0PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle,
 
 
     const int a_NumOfPatch = 4;
-    return PatchBuilder(t_NBVerts, m_Mask, this, a_NumOfPatch);
+    return PatchBuilder(a_Mesh, t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
 

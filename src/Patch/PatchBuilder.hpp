@@ -5,6 +5,8 @@
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <vector>
 #include "../Helper/Helper.hpp"
+#include "../Subdivision/subdivision.hpp"
+#include "../Subdivision/VertexMapping.hpp"
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 typedef MeshType::VertexHandle VertexHandle;
@@ -24,8 +26,8 @@ class PatchBuilder
         int m_DegV = -1;
 
 
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches);
-        PatchBuilder(std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV);
+        PatchBuilder(const MeshType& a_Mesh, std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_NumOfPatches);
+        PatchBuilder(const MeshType& a_Mesh, std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask, PatchConstructor* a_PatchConstructor, int a_DegU, int a_DegV);
         
         PatchBuilder(const PatchBuilder& a_PatchBuilder)
             : m_NBVertexHandles(a_PatchBuilder.m_NBVertexHandles), m_Mask(a_PatchBuilder.m_Mask), m_PatchConstructor(a_PatchBuilder.m_PatchConstructor), m_NumOfPatches(a_PatchBuilder.m_NumOfPatches), m_DegU(a_PatchBuilder.m_DegU), m_DegV(a_PatchBuilder.m_DegV) {};
@@ -36,4 +38,6 @@ class PatchBuilder
         const PatchConstructor* getPatchConstructor() const;
         void degRaise();
         int numPatches() const;
+    private:
+        void initializeMaskAndNeighborVertices(const MeshType& a_Mesh, std::vector<VertexHandle> a_NBVertexHandles, const Matrix& a_Mask);
 };

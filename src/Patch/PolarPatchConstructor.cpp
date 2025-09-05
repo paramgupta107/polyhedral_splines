@@ -121,7 +121,7 @@ PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_Vertex
     const int t_DegU = 3;
     const int t_DegV = 2;
     
-    return PatchBuilder(a_NBVertexHandles, t_mask, this, t_DegU, t_DegV);
+    return PatchBuilder(a_Mesh, a_NBVertexHandles, t_mask, this, t_DegU, t_DegV);
 }
 
 

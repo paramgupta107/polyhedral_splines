@@ -4,6 +4,7 @@
 #include "Pool/Pool.hpp"
 #include "PatchConsumer/PatchConsumer.hpp"
 #include "Helper/Helper.hpp"
+#include "Subdivision/subdivision.hpp"
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 

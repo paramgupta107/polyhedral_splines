@@ -99,7 +99,7 @@ PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandl
         a_NumOfPatch = a_NumOfPatch * 4;
     }
 
-    return PatchBuilder(t_NBVerts, t_mask, this, a_NumOfPatch);
+    return PatchBuilder(a_Mesh, t_NBVerts, t_mask, this, a_NumOfPatch);
 }
 
 
