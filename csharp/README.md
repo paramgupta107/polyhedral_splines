@@ -27,7 +27,7 @@ cmake --build build
 cmake --install build
 dotnet build ./csharp
 ```
-Then, copy both DLL files in ./csharp into your project.
+Then, copy both DLL files in ./csharp and the OpenMesh DLL into your project.
 ---
 
 ## Quick Start

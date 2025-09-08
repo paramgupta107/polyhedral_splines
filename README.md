@@ -135,13 +135,7 @@ cmake --install build
 
 ## OpenMesh Linking Details
 
-OpenMesh is compiled statically into the PolyhedralSplines library:
-
-- **On Unix:**  
-  The OpenMesh code is bundled inside your `.a` or `.so`, so downstream projects don’t need to link OpenMesh separately.
-
-- **On Windows:**  
-  Although `PolyhedralSplinesLib.dll` contains the OpenMesh code at runtime, you **must** link against the statically built `OpenMeshCore.lib` and `OpenMeshTools.lib` when building your own application. These can be found in the `External/OpenMesh` foler. The `.lib` file holds the symbol definitions needed at link time.
+Projects using the PolyhedralSplines library must also link against the OpenMesh library, and if PolyhedralSplines is built as a shared library, the corresponding OpenMesh binaries must be distributed alongside it.
 
 
 ## Citation
