@@ -170,7 +170,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Installation
 #-------------------------------------------------------------------------------
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/api/ 
         DESTINATION include/PolyhedralSplines
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp")
 
