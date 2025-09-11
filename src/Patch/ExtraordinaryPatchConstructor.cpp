@@ -34,8 +34,12 @@ Mat512x17d ExtraordinaryPatchConstructor::getMaskSct8()
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 17);
 }
 
-bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if(check_marked && Helper::is_marked(a_Mesh, a_VertexHandle))
+    {
+        return false;
+    }
     // Extraordinary point should be 3, 5, 6, 7, or 8 valence
     int t_Valence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
     if(t_Valence<3 || t_Valence==4 || t_Valence>8)
@@ -49,9 +53,15 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
         return false;
     }
 
+    // If the vertex neighbors a polar patch, only collect if the neighboring vertex is actually polar
+    bool t_isPolarSurroundingVert = Helper::is_polar_surrounding_vert(a_Mesh, a_VertexHandle);
+    if (t_isPolarSurroundingVert && !Helper::is_polar(a_Mesh, Helper::find_polar_vertex(a_Mesh, a_VertexHandle))) {
+        return false;
+    }
+
     // The first layer of faces should all be quad or 2 consecutive triangles
     auto t_FirstLayerFaces = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
-    if(!Helper::are_faces_all_quads(a_Mesh, t_FirstLayerFaces) && !Helper::is_polar_surrounding_vert(a_Mesh, a_VertexHandle))
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FirstLayerFaces) && !t_isPolarSurroundingVert)
     {
         return false;
     }
@@ -91,7 +101,7 @@ bool ExtraordinaryPatchConstructor::isSamePatchType(const VertexHandle& a_Vertex
  *      \  /
  *       3
  */
-std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle, MeshType& a_Mesh)
 {
     std::vector<VertexHandle> t_VertexHandles;
     std::vector<VertexHandle> t_NBVerts;
@@ -136,7 +146,7 @@ std::vector<VertexHandle> ExtraordinaryPatchConstructor::initNeighborVerts(const
 }
 
 
-PatchBuilder ExtraordinaryPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+PatchBuilder ExtraordinaryPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     // Get valence of extraordinary point to determine the # of cpts
     int t_ExtrPointValence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
@@ -173,6 +183,10 @@ PatchBuilder ExtraordinaryPatchConstructor::getPatchBuilder(const VertexHandle& 
         t_NumOfPatches *= 4; // have four patches in each sector
     }
 
+    if(mark_gathered)
+    {
+        Helper::mark_vert(a_Mesh, a_VertexHandle);
+    }
 
     return PatchBuilder(a_Mesh, t_NBVerts, t_mask, this, t_NumOfPatches);
 }

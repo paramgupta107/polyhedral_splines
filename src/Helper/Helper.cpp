@@ -44,7 +44,7 @@ bool are_verts_of_face_all_4_valence(const MeshType& a_Mesh, const FaceHandle& a
 }
 
 bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle){
-    int t_Valence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
+    int t_Valence = get_vert_valence(a_Mesh, a_VertexHandle);
     auto t_FHs = get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
     if(t_Valence != t_FHs.size()){
         return false;
@@ -71,6 +71,61 @@ bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_Ver
         return false;
     }
     return true;
+}
+
+bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, int max_valence){
+    int t_Valence = get_vert_valence(a_Mesh, a_VertexHandle);
+    const int t_Lowerbound = 3;
+    const int t_Upperbound = max_valence;
+    if(t_Valence < t_Lowerbound || t_Valence > t_Upperbound)
+    {
+        return false;
+    }
+
+    // Polar point should not be on the boundary
+    if(a_Mesh.is_boundary(a_VertexHandle))
+    {
+        return false;
+    }
+
+    // The first layer of surrounded faces should all be triangles
+    auto t_NBFaces = get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
+    if(t_NBFaces.size() != t_Valence)
+    {
+        return false;
+    }
+    for(auto t_Face : t_NBFaces)
+    {
+        if(!is_triangle(a_Mesh, t_Face))
+        {
+            return false;
+        }
+    }
+
+    auto surrounding_verts = get_surrounding_verts(a_Mesh, a_VertexHandle);
+    for(auto vert : surrounding_verts){
+        if(!is_polar_surrounding_vert(a_Mesh, vert)){
+            return false;
+        }
+    }
+    return true;
+    
+}
+
+// Find the polar vertex around the given outer vertexhandle
+VertexHandle find_polar_vertex(const MeshType& mesh, VertexHandle outerVH) {
+    for (auto heh : mesh.voh_range(outerVH)) {
+        FaceHandle f1 = mesh.face_handle(heh);
+        FaceHandle f2 = mesh.face_handle(mesh.opposite_halfedge_handle(heh));
+
+        if (f1.is_valid() && f2.is_valid() &&
+            is_triangle(mesh, f1) && is_triangle(mesh, f2)) 
+        {
+            // the vertex at the far end of this halfedge is the polar
+            return mesh.to_vertex_handle(heh);
+        }
+    }
+    return VertexHandle(); // invalid handle if not found
 }
 
 void set_vert_vector_to_default(const int a_Size, std::vector<VertexHandle>& a_VertexHandles)
@@ -159,7 +214,18 @@ std::vector<VertexHandle> get_surrounding_verts(const MeshType& a_Mesh, const Ve
     return t_surrounding_verts;
 }
 
+bool is_marked(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
+{
+    OpenMesh::VPropHandleT<bool> t_marked;
+    a_Mesh.get_property_handle(t_marked, "marked_status");
+    return a_Mesh.property(t_marked, a_VertHandle);
+}
 
+void mark_vert(MeshType& a_Mesh, const VertexHandle& a_VertHandle){
+    OpenMesh::VPropHandleT<bool> t_marked;
+    a_Mesh.get_property_handle(t_marked, "marked_status");
+    a_Mesh.property(t_marked, a_VertHandle) = true;
+}
 
 
 // Face functions
@@ -282,7 +348,25 @@ int num_of_triangles(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandl
 }
 
 
+bool is_marked(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle)
+{
+    OpenMesh::FPropHandleT<bool> t_marked;
+    a_Mesh.get_property_handle(t_marked, "marked_status");
+    return a_Mesh.property(t_marked, a_FaceHandle);
+}
 
+void mark_face_verts(MeshType& a_Mesh, const FaceHandle& a_FaceHandle){
+    for(auto FVIt = a_Mesh.cfv_iter(a_FaceHandle); FVIt.is_valid(); ++FVIt)
+    {
+        mark_vert(a_Mesh, *FVIt);
+    }
+}
+
+void mark_face(MeshType& a_Mesh, const FaceHandle& a_FaceHandle){
+    OpenMesh::FPropHandleT<bool> t_marked;
+    a_Mesh.get_property_handle(t_marked, "marked_status");
+    a_Mesh.property(t_marked, a_FaceHandle) = true;
+}
 
 // Type conversion
 

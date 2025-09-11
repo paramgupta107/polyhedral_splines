@@ -25,8 +25,17 @@ Mat256x20d T2PatchConstructor::getMask()
  *   15 - 16 - 17 - 18 - 19
  *
  */
-bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if (check_marked){
+        for(auto v_it = a_Mesh.cfv_iter(a_FaceHandle); v_it.is_valid(); ++v_it)
+        {
+            if(Helper::is_marked(a_Mesh, *v_it))
+            {
+                return false;
+            }
+        }
+    }
     // Check if there are 6 vertices of face
     if(!Helper::is_hexagon(a_Mesh, a_FaceHandle))
     {
@@ -79,19 +88,23 @@ bool T2PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const M
 
 
 
-PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+PatchBuilder T2PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     const int a_NumOfPatch = 16;
+    if(mark_gathered)
+    {
+        Helper::mark_face_verts(a_Mesh, a_FaceHandle);
+    }
     return PatchBuilder(a_Mesh, t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
 
 
 
-std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> T2PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 20;

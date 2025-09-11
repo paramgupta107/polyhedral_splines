@@ -14,11 +14,11 @@ class TwoTrianglesTwoQuadsPatchConstructor : public PatchConstructor
 public:
     TwoTrianglesTwoQuadsPatchConstructor() {};
 
-    bool isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
-    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
+    bool isSamePatchType(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool check_marked = false) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool mark_gathered = false) override;
 
-    Patch getPatch(const std::vector<VertexHandle>& a_NBVertexHandles, const MeshType& a_Mesh);
-    Mat9x3d getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles, const MeshType& a_Mesh);
+    Patch getPatch(const std::vector<VertexHandle>& a_NBVertexHandles, MeshType& a_Mesh);
+    Mat9x3d getPatchMat(const std::vector<VertexHandle>& a_NBVertexHandles, MeshType& a_Mesh);
 
 private:
     const Mat9x9d m_Mask = Matrix({
@@ -33,7 +33,7 @@ private:
         {0, 0, 0, 0, 0.25, 0.25, 0, 0.25, 0.25}
     });
 
-    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh);
+    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

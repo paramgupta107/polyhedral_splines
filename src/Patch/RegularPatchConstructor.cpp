@@ -6,8 +6,12 @@
 /*
  * Check if the current face (facehandle) and its neighbors match the Regular structure
  */
-bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if(check_marked && Helper::is_marked(a_Mesh, a_VertHandle))
+    {
+        return false;
+    }
     // Check if the vertex four valence
     if(!Helper::is_vert_4_valence(a_Mesh, a_VertHandle))
     {
@@ -21,8 +25,15 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, 
     {
         return false;
     }
+
+    // If the vertex neighbors a polar patch, only collect if the neighboring vertex is actually polar
+    bool t_isPolarSurroundingVert = Helper::is_polar_surrounding_vert(a_Mesh, a_VertHandle);
+    if (t_isPolarSurroundingVert && !Helper::is_polar(a_Mesh, Helper::find_polar_vertex(a_Mesh, a_VertHandle))) {
+        return false;
+    }
+
     // The first layer of faces should all be quad or 2 consecutive triangles
-    if(!Helper::are_faces_all_quads(a_Mesh, t_FHs) && !Helper::is_polar_surrounding_vert(a_Mesh, a_VertHandle))
+    if(!Helper::are_faces_all_quads(a_Mesh, t_FHs) && !t_isPolarSurroundingVert)
     {
         return false;
     }
@@ -34,19 +45,23 @@ bool RegularPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, 
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+PatchBuilder RegularPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     auto t_NBVertexHandles = initNeighborVerts(a_VertHandle, a_Mesh);
     Matrix t_mask = m_Mask;
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
+    if(mark_gathered)
+    {
+        Helper::mark_vert(a_Mesh, a_VertHandle);
+    }
     return PatchBuilder(a_Mesh, t_NBVertexHandles, t_mask, this, t_PatchDegU, t_PatchDegV);
 }
 
 /*
  * Initialize (obtain) the vertices on original mesh needed for getPatch
  */
-std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> RegularPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, MeshType& a_Mesh)
 {
     // Init m_NeighborVerts with 9 default vertexhandle
     const int t_NumOfVerts = 9;

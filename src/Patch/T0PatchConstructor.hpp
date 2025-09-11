@@ -14,14 +14,14 @@ public:
     T0PatchConstructor()
         : m_Mask(getMask()) {};
 
-    bool isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
-    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh) override;
+    bool isSamePatchType(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool check_marked = false) override;
+    PatchBuilder getPatchBuilder(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool mark_gathered = false) override;
 
 private:
     const Mat64x14d m_Mask;
 
     Mat64x14d getMask();
-    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh);
+    std::vector<VertexHandle> initNeighborVerts(const FaceHandle& a_FaceHandle, MeshType& a_Mesh);
 
     std::string getGroupName() const;
 };

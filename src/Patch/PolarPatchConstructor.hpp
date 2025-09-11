@@ -24,8 +24,8 @@ public:
           m_MaskSct7(getMaskSct7()),
           m_MaskSct8(getMaskSct8()) {};
 
-    bool isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
-    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh) override;
+    bool isSamePatchType(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool check_marked = false) override;
+    PatchBuilder getPatchBuilder(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool mark_gathered = false) override;
 
 private:
     const Mat36x4d m_MaskSct3;
@@ -42,6 +42,6 @@ private:
     Mat72x7d getMaskSct6();
     Mat84x8d getMaskSct7();
     Mat96x9d getMaskSct8();
-    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh);
+    std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, MeshType& a_Mesh);
     std::string getGroupName() const;
 };

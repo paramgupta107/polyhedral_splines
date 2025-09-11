@@ -5,8 +5,8 @@ MeshType subdividePnsControlMeshCatmullClark(MeshType& a_Mesh){
 
     // setup vertex mapping
     auto subdividedVertexMapping = OpenMesh::VProp<VertexMapping>(t_SubdividedMesh, "vertex_mapping");
-    auto markedStatus = OpenMesh::VProp<bool>(a_Mesh, "marked_status");
-    auto subdividedMarkedStatus = OpenMesh::VProp<bool>(t_SubdividedMesh, "marked_status");
+    auto markedStatus = OpenMesh::FProp<bool>(a_Mesh, "marked_status");
+    auto subdividedMarkedStatus = OpenMesh::FProp<bool>(t_SubdividedMesh, "marked_status");
     if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
         // create property if it doesn't exist
         auto t_vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
@@ -35,11 +35,6 @@ MeshType subdividePnsControlMeshCatmullClark(MeshType& a_Mesh){
                 return sum + vertexMapping[v];
             }) / static_cast<double>(a_Mesh.valence(f));
         facePoints[f] = facePointHandle;
-        subdividedMarkedStatus[facePointHandle] = std::accumulate(
-            a_Mesh.fv_begin(f), a_Mesh.fv_end(f), false,
-            [&markedStatus](const bool& acc, const MeshType::VertexHandle& v) {
-                return acc || markedStatus[v];
-            });
     }
 
     // Edge points
@@ -61,7 +56,6 @@ MeshType subdividePnsControlMeshCatmullClark(MeshType& a_Mesh){
         auto edgePointHandle = t_SubdividedMesh.add_vertex(edgePoint);
         subdividedVertexMapping[edgePointHandle] = vm;
         edgePoints[e] = edgePointHandle;
-        subdividedMarkedStatus[edgePointHandle] = markedStatus[a_Mesh.to_vertex_handle(halfEdge)] || markedStatus[a_Mesh.from_vertex_handle(halfEdge)];
     }
 
     // Vertex points
@@ -110,12 +104,12 @@ MeshType subdividePnsControlMeshCatmullClark(MeshType& a_Mesh){
             subdividedVertexMapping[vertexPointHandle] = holeMapping;
             vertexPoints[v] = vertexPointHandle;
         }
-        subdividedMarkedStatus[vertexPoints[v]] = markedStatus[v];
         
     }
     
     // Create faces in the new mesh
     for (auto f : a_Mesh.faces()) {
+        bool currMarkedStatus = markedStatus[f];
         std::vector<MeshType::VertexHandle> faceVertices;
         for (auto fv_it = a_Mesh.fv_begin(f); fv_it != a_Mesh.fv_end(f); ++fv_it) {
             faceVertices.push_back(*fv_it);
@@ -126,7 +120,10 @@ MeshType subdividePnsControlMeshCatmullClark(MeshType& a_Mesh){
             newFace.push_back(edgePoints[a_Mesh.edge_handle(a_Mesh.find_halfedge(faceVertices[i], faceVertices[(i + 1) % faceVertices.size()]))]);
             newFace.push_back(facePoints[f]);
             newFace.push_back(edgePoints[a_Mesh.edge_handle(a_Mesh.find_halfedge(faceVertices[(i - 1 + faceVertices.size()) % faceVertices.size()], faceVertices[i]))]);
-            t_SubdividedMesh.add_face(newFace);
+            auto fh = t_SubdividedMesh.add_face(newFace);
+            if(currMarkedStatus) {
+                subdividedMarkedStatus[fh] = true;
+            }
         }
     }
     return t_SubdividedMesh;

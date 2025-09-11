@@ -34,8 +34,17 @@ Mat512x32d NGonPatchConstructor::getMaskSct8()
     return read_csv_as_matrix(t_MaskCSVFilePathSct8, 512, 32);
 }
 
-bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if (check_marked){
+        for(auto v_it = a_Mesh.cfv_iter(a_FaceHandle); v_it.is_valid(); ++v_it)
+        {
+            if(Helper::is_marked(a_Mesh, *v_it))
+            {
+                return false;
+            }
+        }
+    }
     // The face should have 3 5 6 7 8 vertices
     auto t_FaceValence = Helper::get_num_of_verts_for_face(a_Mesh, a_FaceHandle);
     if(t_FaceValence < 3 || t_FaceValence > 8 || t_FaceValence == 4)
@@ -61,7 +70,7 @@ bool NGonPatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const
     return true;
 }
 
-PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     m_FaceValence = Helper::get_num_of_verts_for_face(a_Mesh, a_FaceHandle);
 
@@ -99,6 +108,11 @@ PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandl
         a_NumOfPatch = a_NumOfPatch * 4;
     }
 
+    if(mark_gathered)
+    {
+        Helper::mark_face_verts(a_Mesh, a_FaceHandle);
+    }
+
     return PatchBuilder(a_Mesh, t_NBVerts, t_mask, this, a_NumOfPatch);
 }
 
@@ -113,7 +127,7 @@ PatchBuilder NGonPatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandl
  *    |   |   |   |
  *    0 - 1 - 6 - 4
  */
-std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> NGonPatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 4 * m_FaceValence;

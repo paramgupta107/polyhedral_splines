@@ -10,8 +10,17 @@ Mat128x18d T1PatchConstructor::getMask()
     return read_csv_as_matrix(t_MaskCSVFilePathT1, 128, 18); //  NumOfTotalCpts = 128, NumOfVerts = 18
 }
 
-bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if (check_marked){
+        for(auto v_it = a_Mesh.cfv_iter(a_FaceHandle); v_it.is_valid(); ++v_it)
+        {
+            if(Helper::is_marked(a_Mesh, *v_it))
+            {
+                return false;
+            }
+        }
+    }
     // Check is the face a Pentagon
     if(!Helper::is_pentagon(a_Mesh, a_FaceHandle))
     {
@@ -46,7 +55,7 @@ bool T1PatchConstructor::isSamePatchType(const FaceHandle& a_FaceHandle, const M
 /*
  * Check if the pentagon only has one tjunction
  */
-bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle, MeshType& a_Mesh)
 {
     const int t_NumOf4ValenceVertsForPenTJ = 4;
     const int t_NumOf3ValenceVertsForPenTJ = 1;
@@ -68,12 +77,16 @@ bool T1PatchConstructor::isPentagonTjunction(const FaceHandle& a_FaceHandle, con
 }
 
 
-PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     // Get neighbor verts
     auto t_NBVerts = initNeighborVerts(a_FaceHandle, a_Mesh);
 
     const int a_NumOfPatch = 8;
+    if(mark_gathered)
+    {
+        Helper::mark_face_verts(a_Mesh, a_FaceHandle);
+    }
     return PatchBuilder(a_Mesh, t_NBVerts, m_Mask, this, a_NumOfPatch);
 }
 
@@ -88,7 +101,7 @@ PatchBuilder T1PatchConstructor::getPatchBuilder(const FaceHandle& a_FaceHandle,
  *    |   |   |   |   |
  *   13 -14 -15- 16 - 17
  */
-std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> T1PatchConstructor::initNeighborVerts(const FaceHandle& a_FaceHandle, MeshType& a_Mesh)
 {
     // Init vector for neighbor points
     const int t_NumOfVerts = 18;

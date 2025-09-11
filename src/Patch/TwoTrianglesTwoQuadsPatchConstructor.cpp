@@ -6,8 +6,11 @@
 /*
  * Check if the current face (facehandle) and its neighbors match the Regular structure
  */
-bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a_VertHandle, MeshType& a_Mesh, bool check_marked)
 {
+    if (check_marked && Helper::is_marked(a_Mesh, a_VertHandle)){
+        return false;
+    }
     // Check if the vertex four valence
     if(!Helper::is_vert_4_valence(a_Mesh, a_VertHandle))
     {
@@ -52,11 +55,15 @@ bool TwoTrianglesTwoQuadsPatchConstructor::isSamePatchType(const VertexHandle& a
 /*
  * Find the neighbor verts around the given face, then use the verts to generate patch
  */
-PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexHandle& a_VertHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     auto t_NBVertexHandles = initNeighborVerts(a_VertHandle, a_Mesh);
     const int t_PatchDegU = 2;
     const int t_PatchDegV = 2;
+    if(mark_gathered)
+    {
+        Helper::mark_vert(a_Mesh, a_VertHandle);
+    }
     return PatchBuilder(a_Mesh, t_NBVertexHandles, m_Mask, this, t_PatchDegU, t_PatchDegV);
 }
 
@@ -72,7 +79,7 @@ PatchBuilder TwoTrianglesTwoQuadsPatchConstructor::getPatchBuilder(const VertexH
  *               \ |     |
  *                 7 --- 8
  */
-std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> TwoTrianglesTwoQuadsPatchConstructor::initNeighborVerts(const VertexHandle& a_VertHandle, MeshType& a_Mesh)
 {
     // Init m_NeighborVerts with 9 default vertexhandle
     const int t_NumOfVerts = 9;

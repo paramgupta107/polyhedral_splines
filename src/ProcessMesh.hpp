@@ -8,8 +8,8 @@
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MeshType;
 
-std::vector<PatchBuilder> getPatchBuilders(const MeshType& a_Mesh);
+std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh);
 
-void process_mesh(const MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool a_IsDegRaise);
+void process_mesh(MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool a_IsDegRaise);
 
-std::vector<PatchBuilder> getPatchBuilders(const MeshType& a_Mesh);
+std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh);

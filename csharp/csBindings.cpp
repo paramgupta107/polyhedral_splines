@@ -297,13 +297,13 @@ extern "C"
         }
     }
     
-    int GetPatchBuildersCount_Interop(const MeshType* mesh) {
+    int GetPatchBuildersCount_Interop(MeshType* mesh) {
         if (!mesh) return 0;
         auto builders = getPatchBuilders(*mesh);
         return builders.size();
     }
     
-    void GetPatchBuilders_Interop(const MeshType* mesh, PatchBuilder** buildersOut, int count) {
+    void GetPatchBuilders_Interop(MeshType* mesh, PatchBuilder** buildersOut, int count) {
         if (!mesh || !buildersOut) return;
         auto builders = getPatchBuilders(*mesh);
         for (size_t i = 0; i < builders.size() && i < count; i++) {

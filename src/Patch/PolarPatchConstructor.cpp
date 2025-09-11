@@ -44,42 +44,15 @@ Mat96x9d PolarPatchConstructor::getMaskSct8()
 }
 
 
-bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool check_marked)
 {
-    // Polar point should be 3 to 8 valence
+    if(check_marked && Helper::is_marked(a_Mesh, a_VertexHandle))
+    {
+        return false;
+    }
     int t_Valence = Helper::get_vert_valence(a_Mesh, a_VertexHandle);
-    const int t_Lowerbound = 3;
-    const int t_Upperbound = 8;
-    if(t_Valence < t_Lowerbound || t_Valence > t_Upperbound)
-    {
+    if(!Helper::is_polar(a_Mesh, a_VertexHandle)){
         return false;
-    }
-
-    // Polar point should not be on the boundary
-    if(a_Mesh.is_boundary(a_VertexHandle))
-    {
-        return false;
-    }
-
-    // The first layer of surrounded faces should all be triangles
-    auto t_NBFaces = Helper::get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
-    if(t_NBFaces.size() != t_Valence)
-    {
-        return false;
-    }
-    for(auto t_Face : t_NBFaces)
-    {
-        if(!Helper::is_triangle(a_Mesh, t_Face))
-        {
-            return false;
-        }
-    }
-
-    auto surrounding_verts = Helper::get_surrounding_verts(a_Mesh, a_VertexHandle);
-    for(auto vert : surrounding_verts){
-        if(!Helper::is_polar_surrounding_vert(a_Mesh, vert)){
-            return false;
-        }
     }
 
     std::cout << "Polar" << std::endl;
@@ -90,7 +63,7 @@ bool PolarPatchConstructor::isSamePatchType(const VertexHandle& a_VertexHandle, 
 }
 
 
-PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_VertexHandle, MeshType& a_Mesh, bool mark_gathered)
 {
     auto a_NBVertexHandles = initNeighborVerts(a_VertexHandle, a_Mesh);
 
@@ -120,6 +93,11 @@ PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_Vertex
 
     const int t_DegU = 3;
     const int t_DegV = 2;
+
+    if(mark_gathered)
+    {
+        Helper::mark_vert(a_Mesh, a_VertexHandle);
+    }
     
     return PatchBuilder(a_Mesh, a_NBVertexHandles, t_mask, this, t_DegU, t_DegV);
 }
@@ -132,7 +110,7 @@ PatchBuilder PolarPatchConstructor::getPatchBuilder(const VertexHandle& a_Vertex
  *      | /  \ |
  *     P2 ---- P3
  */
-std::vector<VertexHandle> PolarPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle, const MeshType& a_Mesh)
+std::vector<VertexHandle> PolarPatchConstructor::initNeighborVerts(const VertexHandle& a_VertexHandle, MeshType& a_Mesh)
 {
     // init vector to stroe all vertices
     std::vector<VertexHandle> t_NBVertexHandles;
