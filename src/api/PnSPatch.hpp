@@ -10,7 +10,6 @@ struct Patch;
 class PnSPatch{
     public:
         PnSPatch();
-        PnSPatch(Patch *impl);
         ~PnSPatch();
         PnSPatch(const PnSPatch& patch);
         PnSPatch(PnSPatch&& patch) noexcept;
@@ -30,6 +29,8 @@ class PnSPatch{
 
     private:
         // Only created by PnSpline
+        PnSPatch(Patch *impl);
+        friend class PnSpline;
         Patch *impl;
 };
 
