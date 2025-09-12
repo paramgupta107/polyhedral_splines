@@ -39,7 +39,7 @@ static void setupMarkedStatus(MeshType& a_Mesh)
 	auto faceMarkedStatus = OpenMesh::FProp<bool>(a_Mesh, "marked_status");
 	for (auto f : a_Mesh.faces())
 	{
-		faceMarkedStatus[f] = false;
+		faceMarkedStatus[f] = a_Mesh.is_boundary(f);
 	}
 }
 
