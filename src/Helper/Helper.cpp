@@ -43,10 +43,31 @@ bool are_verts_of_face_all_4_valence(const MeshType& a_Mesh, const FaceHandle& a
     return true;
 }
 
-bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle){
+/*
+ * Check if the given vertex belong to one of the vertices in face
+ */
+bool is_vert_in_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle, const VertexHandle& a_VertHandle)
+{
+    for(auto FVIt=a_Mesh.cfv_iter(a_FaceHandle); FVIt.is_valid(); ++FVIt)
+    {
+        if(*FVIt==a_VertHandle)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, bool only_regular, int max_valence){
     int t_Valence = get_vert_valence(a_Mesh, a_VertexHandle);
     auto t_FHs = get_faces_around_vert_counterclock(a_Mesh, a_VertexHandle);
     if(t_Valence != t_FHs.size()){
+        return false;
+    }
+    if(only_regular && t_Valence != 4){
+        return false;
+    }
+    if(t_Valence < 3 || t_Valence > max_valence){
         return false;
     }
     int t_Tri_Count = 0;
@@ -73,7 +94,7 @@ bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_Ver
     return true;
 }
 
-bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, int max_valence){
+bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, bool only_regular, int max_valence, int surrounding_max_valence){
     int t_Valence = get_vert_valence(a_Mesh, a_VertexHandle);
     const int t_Lowerbound = 3;
     const int t_Upperbound = max_valence;
@@ -104,7 +125,7 @@ bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, int ma
 
     auto surrounding_verts = get_surrounding_verts(a_Mesh, a_VertexHandle);
     for(auto vert : surrounding_verts){
-        if(!is_polar_surrounding_vert(a_Mesh, vert)){
+        if(!is_polar_surrounding_vert(a_Mesh, vert, only_regular, max_valence)){
             return false;
         }
     }
@@ -205,6 +226,28 @@ std::vector<VertexHandle> get_two_layers_verts_around_vert(const MeshType& a_Mes
     return t_AllVerts;
 }
 
+/*
+ * Get first layer of verts around the given vert
+ *
+ * ex:
+ *    1 - 0 - 7   x: Given point
+ *    |   |   |   0-7: Verts will get
+ *    2 - x - 6
+ *    |   |   |
+ *    3 - 4 - 5
+ */
+std::vector<VertexHandle> get_first_layers_verts_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
+{
+    std::vector<VertexHandle> t_Verts;
+    std::vector<int> t_Commands = {1, 4, 1, 4}; //Command for getting one section (ex: 0, 1)
+    for(auto VHIt=a_Mesh.cvoh_ccwiter(a_VertHandle); VHIt.is_valid(); ++VHIt)
+    {
+        auto t_SectionVerts = HalfedgeOperation::get_verts_fixed_halfedge(a_Mesh, *VHIt, t_Commands);
+        t_Verts.insert(t_Verts.begin(), t_SectionVerts.begin(), t_SectionVerts.end());
+    }
+    return t_Verts;
+}
+
 std::vector<VertexHandle> get_surrounding_verts(const MeshType& a_Mesh, const VertexHandle& a_VertHandle){
     std::vector<VertexHandle> t_surrounding_verts;
     for(auto vv_it = a_Mesh.cvv_iter(a_VertHandle); vv_it.is_valid(); ++vv_it)
@@ -212,6 +255,20 @@ std::vector<VertexHandle> get_surrounding_verts(const MeshType& a_Mesh, const Ve
         t_surrounding_verts.push_back(*vv_it);
     }
     return t_surrounding_verts;
+}
+std::vector<FaceHandle> get_second_layer_faces_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
+{
+    auto t_TwoLayerFaces = get_two_layers_faces_around_vert(a_Mesh, a_VertHandle);
+    auto t_FirstLayerFaces = get_faces_around_vert_counterclock(a_Mesh, a_VertHandle);
+
+    auto pred = [&t_FirstLayerFaces](const FaceHandle& key) ->bool
+    {
+        return std::find(t_FirstLayerFaces.begin(), t_FirstLayerFaces.end(), key) != t_FirstLayerFaces.end();
+    };
+
+    t_TwoLayerFaces.erase(std::remove_if(t_TwoLayerFaces.begin(), t_TwoLayerFaces.end(), pred), t_TwoLayerFaces.end());
+
+    return t_TwoLayerFaces;
 }
 
 bool is_marked(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
@@ -283,6 +340,12 @@ bool has_7_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles)
     return (get_num_of_neighbor_faces(a_NBFaceHandles)==t_7Neighbor) ? true : false;
 }
 
+bool has_8_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles)
+{
+    const int t_8Neighbor = 8;
+    return (get_num_of_neighbor_faces(a_NBFaceHandles)==t_8Neighbor) ? true : false;
+}
+
 bool has_9_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles)
 {
     const int t_9Neighbor = 9;
@@ -294,6 +357,18 @@ bool are_faces_all_quads(const MeshType& a_Mesh, const std::vector<FaceHandle>& 
     for(auto t_FH : a_FaceHandles)
     {
         if(!is_quad(a_Mesh, t_FH))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_only_surrounded_by_quad(const MeshType& a_Mesh, const VertexHandle& a_VertHandle)
+{
+    for(auto VFIt = a_Mesh.cvf_iter(a_VertHandle); VFIt.is_valid(); ++VFIt)
+    {
+        if(!is_quad(a_Mesh, *VFIt))
         {
             return false;
         }
@@ -321,6 +396,22 @@ std::vector<VertexHandle> get_verts_of_face(const MeshType& a_Mesh, const FaceHa
     return t_VertsOfFace;
 }
 
+std::vector<VertexHandle> get_verts_of_faces(const MeshType& a_Mesh, const std::vector<FaceHandle>& a_FaceHandles)
+{
+    std::vector<VertexHandle> t_VertsInFaces;
+    for(auto t_Face : a_FaceHandles)
+    {
+        auto t_Verts = get_verts_of_face(a_Mesh, t_Face);
+        t_VertsInFaces.insert(t_VertsInFaces.end(), t_Verts.begin(), t_Verts.end());
+    }
+
+    // Eliminate the duplicated verts
+    sort(t_VertsInFaces.begin(), t_VertsInFaces.end());
+    t_VertsInFaces.erase(unique(t_VertsInFaces.begin(), t_VertsInFaces.end()), t_VertsInFaces.end());
+
+    return t_VertsInFaces;
+}
+
 int num_of_quads(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandles)
 {
     int t_NumOfQuads = 0;
@@ -345,6 +436,49 @@ int num_of_triangles(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandl
         }
     }
     return t_NumOfTriangles;
+}
+
+std::vector<FaceHandle> get_second_layer_faces_around_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle)
+{
+    std::vector<FaceHandle> t_SecLayerFaces;
+
+    // Get First layer faces
+    auto t_FirstLayerFaces = init_neighbor_faces(a_Mesh, a_FaceHandle);
+
+    // Get Verts of first layer face
+    auto t_FirstLayerVertsOri = get_verts_of_faces(a_Mesh, t_FirstLayerFaces);
+    auto t_FirstLayerVerts = t_FirstLayerVertsOri;
+
+    // Remove the verts in central face
+    for(auto t_Vert : t_FirstLayerVertsOri)
+    {
+        if(is_vert_in_face(a_Mesh, a_FaceHandle, t_Vert))
+        {
+            t_FirstLayerVerts.erase(
+                std::remove(t_FirstLayerVerts.begin(), t_FirstLayerVerts.end(), t_Vert), t_FirstLayerVerts.end());
+        }
+    }
+
+
+    // Get all faces around the first layer verts
+    for(auto t_Vert : t_FirstLayerVerts)
+    {
+        auto t_Faces = get_faces_around_vert_counterclock(a_Mesh, t_Vert);
+        t_SecLayerFaces.insert(t_SecLayerFaces.end(), t_Faces.begin(), t_Faces.end());
+    }
+
+    // Remove duplicate faces
+    sort(t_SecLayerFaces.begin(), t_SecLayerFaces.end());
+    t_SecLayerFaces.erase(
+        unique(t_SecLayerFaces.begin(), t_SecLayerFaces.end()), t_SecLayerFaces.end());
+
+    // Remove first layer faces
+    for(auto t_FLFace : t_FirstLayerFaces)
+    {
+        t_SecLayerFaces.erase(std::remove(t_SecLayerFaces.begin(), t_SecLayerFaces.end(), t_FLFace), t_SecLayerFaces.end());
+    }
+
+    return t_SecLayerFaces;
 }
 
 

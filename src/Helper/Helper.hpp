@@ -26,14 +26,16 @@ bool is_vert_3_valence(const MeshType& a_Mesh, const VertexHandle& a_VertexHandl
 bool is_vert_4_valence(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle);
 bool is_vert_5_valence(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle);
 bool are_verts_of_face_all_4_valence(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
+bool is_vert_in_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle, const VertexHandle& a_VertHandle);
 void set_vert_vector_to_default(const int a_Size, std::vector<VertexHandle>& a_VertexHandles);
 std::vector<FaceHandle> get_faces_around_vert_counterclock(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 std::vector<FaceHandle> get_two_layers_faces_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 std::vector<VertexHandle> get_two_layers_verts_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
+std::vector<VertexHandle> get_first_layers_verts_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 std::vector<VertexHandle> get_surrounding_verts(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
+std::vector<FaceHandle> get_second_layer_faces_around_vert(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 bool is_marked(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 void mark_vert(MeshType& a_Mesh, const VertexHandle& a_VertHandle);
-
 // Face functions
 bool is_triangle(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 bool is_quad(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
@@ -41,20 +43,23 @@ bool is_pentagon(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 bool is_hexagon(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 std::vector<FaceHandle> init_neighbor_faces(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 bool has_7_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles);
+bool has_8_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles);
 bool has_9_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles);
 bool are_faces_all_quads(const MeshType& a_Mesh, const std::vector<FaceHandle>& a_FaceHandles);
-bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle);
-bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, int max_valence = 8);
+bool is_only_surrounded_by_quad(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
+bool is_polar_surrounding_vert(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, bool only_regular = false, int max_valence = 8);
+bool is_polar(const MeshType& a_Mesh, const VertexHandle& a_VertexHandle, bool only_regular = false, int max_valence = 8, int surrounding_max_valence = 8);
 VertexHandle find_polar_vertex(const MeshType& mesh, VertexHandle outerVH);
 int get_num_of_verts_for_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 int get_num_of_neighbor_faces(const std::vector<FaceHandle>& a_NBFaceHandles);
 std::vector<VertexHandle> get_verts_of_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
+std::vector<VertexHandle> get_verts_of_faces(const MeshType& a_Mesh, const std::vector<FaceHandle>& a_FaceHandles);
 int num_of_quads(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandles);
 int num_of_triangles(const MeshType& a_Mesh, std::vector<FaceHandle> a_FaceHandles);
+std::vector<FaceHandle> get_second_layer_faces_around_face(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 bool is_marked(const MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 void mark_face_verts(MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
 void mark_face(MeshType& a_Mesh, const FaceHandle& a_FaceHandle);
-
 // Type conversion
 Vec3d verthandles_to_point_vec(const MeshType& a_Mesh, const VertexHandle& a_VertHandle);
 Matrix verthandles_to_points_mat(const MeshType& a_Mesh, const std::vector<VertexHandle>& a_VertHandle);
