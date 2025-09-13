@@ -11,7 +11,7 @@ void PnSPatch_degRaise(Patch* patch){
     patch->degRaise();
 }
 
-const double& PnSPatch_getValue(const Patch* patch, uint32_t i, uint32_t j, uint32_t k){
+double PnSPatch_getValue(const Patch* patch, uint32_t i, uint32_t j, uint32_t k){
     return patch->m_BBcoefs[i][j][k];
 }
 
