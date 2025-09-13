@@ -4,7 +4,8 @@ project(PolyhedralSplines)
 #-------------------------------------------------------------------------------
 # Configuration options
 #-------------------------------------------------------------------------------
-option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(BUILD_SHARED_LIBS "Build shared library" OFF)
+option(OPENMESH_BUILD_SHARED "Build OpenMesh as shared library" OFF)
 
 # Required by OpenMesh
 set(CMAKE_CXX_STANDARD 17)
@@ -62,10 +63,10 @@ ExternalProject_Add(
     GIT_TAG f13a3bf79f8dc91cd453b74baa9dc6f97a5a3062
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
                -DBUILD_APPS=FALSE
-               -DOPENMESH_BUILD_SHARED=${BUILD_SHARED_LIBS}
+               -DOPENMESH_BUILD_SHARED=${OPENMESH_BUILD_SHARED}
                -DCMAKE_CXX_STANDARD=17
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-               -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+               -DBUILD_SHARED_LIBS=${OPENMESH_BUILD_SHARED}
                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
