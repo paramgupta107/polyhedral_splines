@@ -47,7 +47,7 @@ endif()
 #-------------------------------------------------------------------------------
 # External dependencies
 #-------------------------------------------------------------------------------
-set(OPENMESH_ROOT ${CMAKE_SOURCE_DIR}/External/OpenMesh)
+set(OPENMESH_ROOT ${CMAKE_BINARY_DIR}/External/OpenMesh)
 
 
 if (NOT CMAKE_BUILD_TYPE)
