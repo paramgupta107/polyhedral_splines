@@ -6,6 +6,8 @@ project(PolyhedralSplines)
 #-------------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(OPENMESH_BUILD_SHARED "Build OpenMesh as shared library" OFF)
+option(BUILD_DOCS "Build documentation with Doxygen" OFF)
+
 
 # Required by OpenMesh
 set(CMAKE_CXX_STANDARD 17)
@@ -101,14 +103,14 @@ list(REMOVE_ITEM SOURCES ${CMAKE_SOURCE_DIR}/src/main.cpp)
 
 # Add conditional source files
 if(BUILD_SHARED_LIBS)
-    target_sources(PolyhedralSplinesLib PRIVATE csharp/csBindings.cpp)
+    target_sources(PolyhedralSplinesLib PRIVATE ${CMAKE_SOURCE_DIR}/csharp/csBindings.cpp)
 endif()
 
 if(NOT EMSCRIPTEN)
-    add_executable(PolyhedralSplines src/main.cpp)
+    add_executable(PolyhedralSplines ${CMAKE_SOURCE_DIR}/src/main.cpp)
 else()
-    add_executable(PolyhedralSplines wasm/wasmBindings.cpp)
-    target_sources(PolyhedralSplinesLib PRIVATE wasm/wasmBindings.cpp)
+    add_executable(PolyhedralSplines ${CMAKE_SOURCE_DIR}/wasm/wasmBindings.cpp)
+    target_sources(PolyhedralSplinesLib PRIVATE ${CMAKE_SOURCE_DIR}/wasm/wasmBindings.cpp)
 endif()
 
 # Create the executable target
@@ -166,6 +168,28 @@ add_dependencies(PolyhedralSplinesLib EmbedTables)
 #-------------------------------------------------------------------------------
 if(BUILD_PYTHON_BINDINGS)
     add_subdirectory(python)
+endif()
+
+#-------------------------------------------------------------------------------
+# Python Bindings
+#-------------------------------------------------------------------------------
+
+if(BUILD_DOCS)
+    find_package(Doxygen REQUIRED)
+
+    if(DOXYGEN_FOUND)
+        message(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE}")
+        
+        # Custom target to generate docs
+        add_custom_target(docs ALL
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_SOURCE_DIR}/Doc/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+            VERBATIM
+        )
+    else()
+        message(FATAL_ERROR "Doxygen is required to build the documentation")
+    endif()
 endif()
 
 #-------------------------------------------------------------------------------

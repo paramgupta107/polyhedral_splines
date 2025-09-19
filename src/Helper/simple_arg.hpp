@@ -10,26 +10,116 @@
 #include <type_traits>
 #include <vector>
 
+/**
+ * \ingroup utility
+ * @brief A simple command-line argument parser.
+ * 
+ */
 struct SimpleArg {
+    /**
+     * @brief An option (named or positional).
+     * 
+     */
     struct Opt {
+        /**
+         * @brief Short name (e.g. 'h' for -h).
+         * 
+         */
         char                      s{};
-        std::string               l, desc, default_str, type_name;
+        /**
+         * @brief Long name (e.g. "help" for --help).
+         * 
+         */
+        std::string               l;
+        /**
+         * @brief Description of the option.
+         * 
+         */
+        std::string               desc;
+        /**
+         * @brief Default value as string (empty if none).
+         * 
+         */
+        std::string               default_str;
+        /**
+         * @brief Type name (e.g. "int", "float", "string", "enum", "flag").
+         * 
+         */
+        std::string               type_name;
+        /**
+         * @brief Whether the option takes a value (true) or is a flag (false).
+         * 
+         */
         bool                      takes_val{};
+        /**
+         * @brief Whether the option is required (true) or optional (false).
+         * 
+         */
         bool                      required{};
+        /**
+         * @brief Allowed choices (for enum types).
+         * 
+         */
         std::vector<std::string>  choices;
     };
 
+    /**
+     * @brief The name of the program (usually argv[0]).
+     * 
+     */
     std::string                    prog;
-    std::vector<Opt>               opts, positionals;
+
+    /**
+     * @brief The list of named options.
+     * 
+     */
+    std::vector<Opt>               opts;
+
+    /**
+     * @brief The list of positional options.
+     * 
+     */
+    std::vector<Opt>               positionals;
+
+    /**
+     * @brief The parsed values.
+     * 
+     */
     std::map<std::string,std::string> vals;
+
+    /**
+     * @brief The parsed flags.
+     * 
+     */
     std::map<std::string,bool>        flags;
+
+    /**
+     * @brief The list of errors encountered during parsing.
+     * 
+     */
     std::vector<std::string>          errs;
 
+    /**
+     * @brief Construct a new Simple Arg object
+     * 
+     * @param p Name of the program (usually argv[0]).
+     */
     SimpleArg(std::string p) : prog(std::move(p)) {
         add<bool>('h', "help", "show this help message");
     }
 
     // — register named args of any type T —
+    /**
+     * @brief Add a named argument.
+     * 
+     * @tparam T Type of the argument. Only bool, int, float, and std::string are supported.
+     * @param s The short name (e.g. 'h' for -h).
+     * @param l The long name (e.g. "help" for --help).
+     * @param d Description of the argument.
+     * @param req Whether the argument is required (true) or optional (false).
+     * @param def Default value (only if req is false).
+     * @param choices Allowed choices (only for enum types).
+     */
     template<typename T>
     void add(char s,
              std::string l,
@@ -66,6 +156,14 @@ struct SimpleArg {
     }
 
     // — register positional args (always required) —
+    /**
+     * @brief Add a positional argument.
+     * 
+     * @tparam T Type of the argument. Only int, float, and std::string are supported.
+     * @param l The name of the positional argument (for help messages).
+     * @param d Description of the argument.
+     * @param choices Allowed choices (only for enum types).
+     */
     template<typename T>
     void addPositional(std::string l,
                        std::string d,
@@ -88,6 +186,13 @@ struct SimpleArg {
     }
 
     // — parse everything, stopping at first error —
+    /**
+     * @brief Parse the command-line arguments.
+     * 
+     * @param argc The number of arguments (from main).
+     * @param argv The argument values (from main).
+     * @return true if parsing was successful, false otherwise.
+     */
     bool parse(int argc, char** argv) {
         std::vector<std::string> raw_pos;
 
@@ -189,6 +294,13 @@ struct SimpleArg {
     }
 
     // — single get<T> for named, plus help()/errors()/errorMsg() —
+    /**
+     * @brief Get the value of a named argument.
+     * 
+     * @tparam T Type of the argument. Only bool, int, float, and std::string are supported.
+     * @param name The long name of the argument (e.g. "help" for --help).
+     * @return T The value of the argument.
+     */
     template<typename T>
     T get(const std::string &name) const {
         if constexpr(std::is_same_v<T,bool>) {
@@ -211,13 +323,37 @@ struct SimpleArg {
         }
         else static_assert(!sizeof(T), "unsupported get<T>");
     }
+    
+    /**
+     * @brief Check if help was requested.
+     * 
+     * @return true if help was requested, false otherwise.
+     */
     bool        help()   const { return get<bool>("help"); }
+
+    /**
+     * @brief Check if there were any errors during parsing.
+     * 
+     * @return true if there were errors, false otherwise.
+     */
     bool        errors() const { return !errs.empty(); }
+
+    /**
+     * @brief Get the error message.
+     * 
+     * @return std::string The error message, or an empty string if there were no errors.
+     */
     std::string errorMsg() const {
         return errs.empty() ? "" : std::string("error: ") + errs[0];
     }
 
     // — get positional by index —
+    /**
+     * @brief Get the Positional object
+     * @tparam T Type of the positional argument. Only int, float, and std::string are supported.
+     * @param idx 
+     * @return T The value of the positional argument at index idx.
+     */
     template<typename T>
     T getPositional(size_t idx) const {
         if (idx >= positionals.size())
@@ -226,6 +362,11 @@ struct SimpleArg {
     }
 
     // — pretty‐print help —
+    /**
+     * @brief Print the help message.
+     * 
+     * @param os The output stream to print to (default: std::cout).
+     */
     void printHelp(std::ostream &os = std::cout) const {
         os << "Usage: " << prog << " [options]";
         for (auto &p : positionals)

@@ -9,6 +9,10 @@
 
 typedef Matrix Mat9x9d;
 
+/**
+ * \ingroup patch_build
+ * @brief Patch constructor for regular patches. See \ref PatchConstructor
+ */
 class RegularPatchConstructor : public PatchConstructor
 {
 public:
@@ -33,6 +37,19 @@ private:
         {0, 0, 0, 0, 0.25, 0.25, 0, 0.25, 0.25}
     });
 
+    /**
+     * @brief Gather the list of neighboring vertices around a given vertex in the expected order to be compatable with mask.
+     * ex:
+     * \code
+     *    0  1  2
+     *    3  4  5
+     *    6  7  8
+     * \endcode
+     * 
+     * @param a_VertexHandle The vertex handle around for which to initialize neighbors.
+     * @param a_Mesh The mesh to which the vertex belongs.
+     * @return A vector of neighboring vertex handles.
+     */
     std::vector<VertexHandle> initNeighborVerts(const VertexHandle& a_VertexHandle, MeshType& a_Mesh);
 
     std::string getGroupName() const;

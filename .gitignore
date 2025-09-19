@@ -18,6 +18,9 @@ csharp/PolyhedralNetSplines.dll
 
 /External/*
 
+# Doc files
+Doc/html
+
 # Visual Studio 2017 files
 packages.config
 *.vcxproj.filters
