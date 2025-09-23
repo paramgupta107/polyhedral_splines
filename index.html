@@ -103,6 +103,14 @@
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 		import { ToonShader1, ToonShader2, ToonShaderHatching, ToonShaderDotted } from 'three/addons/shaders/ToonShader.js';
         import { OBJLoader } from "three/addons/loaders/OBJLoader.js"
+		import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+		import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+		import { Line2 } from 'three/addons/lines/Line2.js';
+		import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+
+		import { Wireframe } from 'three/addons/lines/Wireframe.js';
+		import { WireframeGeometry2 } from 'three/addons/lines/WireframeGeometry2.js';
+
 
 
         let processMesh;
@@ -142,6 +150,12 @@
 		let clippingPlane;
 		let planeHelper;
 
+		let gridHelper;
+
+		let ground;
+
+		let controlMesh;
+
 		createModule(/* optional default settings */).then(function(M) {
     	// this is reached when everything is ready, and you can call methods on Module
 			Module = M;
@@ -167,7 +181,7 @@
 
 			// CAMERA
 
-			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 10000 );
 			camera.position.set( - 5, 5, 5 );
 
 			// SCENE
@@ -187,19 +201,21 @@
 			light.shadow.mapSize.width = 2048; // High resolution for sharper shadows
 			light.shadow.mapSize.height = 2048;
 
-            const gridHelper = new THREE.PolarGridHelper( 2, 16 );
+            gridHelper = new THREE.GridHelper( 2, 16 );
+			gridHelper.visible = false;
 	        scene.add( gridHelper );
 
 			// shadow
 
-			const ground = new THREE.Mesh(
-				new THREE.PlaneGeometry(500, 500),
+			ground = new THREE.Mesh(
+				new THREE.PlaneGeometry(10000, 10000),
 				new THREE.ShadowMaterial({ opacity: 0.2 }) // Special material to render shadows softly
 			);
 			ground.rotation.x = -Math.PI / 2; // Make it horizontal
 			ground.position.y = -0.1;
 			ground.receiveShadow = true; // This object will receive shadows
-			scene.add(ground);								
+			scene.add(ground);		
+			ground.visible = false;						
 
 
 			// MATERIALS
@@ -326,11 +342,14 @@ function createShaderMaterial( shader, light, ambientLight ) {
 	uniforms: {
 		thickness: { value: 1.5 }, // Adjust line thickness as needed
 		highlightThickness: { value: 2.0 }, // New uniform to control highlight width
-		baseColor: { value: new THREE.Color(0xeeeeee) }, // Base diffuse color
-		wireColor: { value: new THREE.Color(0xbdbdbd) }, // Wireframe color
+		baseColor: { value: new THREE.Color(0xc7c7c7) }, // Base diffuse color
+		wireColor: { value: new THREE.Color(0x000000) }, // Wireframe color
 		ambientLight: { value: ambientLight.color }, // Ambient light color
 		directionalLightColor: { value: light.color }, // Directional light color
-		lightDirection: { value: light.position.clone().normalize() } // Normalized light direction
+		lightDirection: { value: light.position.clone().normalize() }, // Normalized light direction
+		specularIntensity: { value: 0.5 }, // Specular intensity
+		shininess: { value: 100.0 }, // Shininess for specular highlight
+		highlightLineDensity: { value: 1.0 } //uniform to control highlight line density
 	},
 	vertexShader: `
 		#include <clipping_planes_pars_vertex>
@@ -347,56 +366,183 @@ function createShaderMaterial( shader, light, ambientLight ) {
 			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 		}
 	`,
-	fragmentShader: `
-		#include <clipping_planes_pars_fragment>
-		varying vec3 vViewPosition;
-		uniform float thickness;
-		uniform float highlightThickness; // controls the width of the red highlight
-		uniform vec3 baseColor;
-		uniform vec3 wireColor;
-		uniform vec3 ambientLight;
-		uniform vec3 directionalLightColor;
-		uniform vec3 lightDirection;
+	// fragmentShader: `
+	// 	#include <clipping_planes_pars_fragment>
+	// 	varying vec3 vViewPosition;
+	// 	uniform float thickness;
+	// 	uniform float highlightThickness; // controls the width of the red highlight
+	// 	uniform vec3 baseColor;
+	// 	uniform vec3 wireColor;
+	// 	uniform vec3 ambientLight;
+	// 	uniform vec3 directionalLightColor;
+	// 	uniform vec3 lightDirection;
 
-		varying vec2 vUv;
-		varying vec3 vNormal;
+	// 	varying vec2 vUv;
+	// 	varying vec3 vNormal;
 
-		void main() {
-		// Perform the built-in clipping. Fragments on the clipped side are discarded.
-		#include <clipping_planes_fragment>
+	// 	void main() {
+	// 	// Perform the built-in clipping. Fragments on the clipped side are discarded.
+	// 	#include <clipping_planes_fragment>
 
-		// Now that only non-discarded fragments remain, we add a red highlight
-		// for fragments that are close to any clipping plane.
-		float clipHighlight = 0.0;
-		#if NUM_CLIPPING_PLANES > 0
-		for (int i = 0; i < NUM_CLIPPING_PLANES; i++) {
-		vec4 plane = clippingPlanes[i];
-		float d = abs(dot(vViewPosition, plane.xyz) - plane.w);
-		// Use fwidth on 'd' and scale with highlightThickness to define a narrow band.
-		float h = 1.0 - smoothstep(0.0, highlightThickness * fwidth(d), d);
-		clipHighlight = max(clipHighlight, h);
-		}
-		#endif
+	// 	// Now that only non-discarded fragments remain, we add a red highlight
+	// 	// for fragments that are close to any clipping plane.
+	// 	float clipHighlight = 0.0;
+	// 	#if NUM_CLIPPING_PLANES > 0
+	// 	for (int i = 0; i < NUM_CLIPPING_PLANES; i++) {
+	// 	vec4 plane = clippingPlanes[i];
+	// 	float d = abs(dot(vViewPosition, plane.xyz) - plane.w);
+	// 	// Use fwidth on 'd' and scale with highlightThickness to define a narrow band.
+	// 	float h = 1.0 - smoothstep(0.0, highlightThickness * fwidth(d), d);
+	// 	clipHighlight = max(clipHighlight, h);
+	// 	}
+	// 	#endif
 
-		// Diffuse shading using ambient and directional lights.
-		float lambert = max(dot(vNormal, normalize(lightDirection)), 0.0);
-		vec3 diffuseColor = baseColor * (ambientLight + directionalLightColor * lambert);
+	// 	// Diffuse shading using ambient and directional lights.
+	// 	float lambert = max(dot(vNormal, normalize(lightDirection)), 0.0);
+	// 	vec3 diffuseColor = baseColor * (ambientLight + directionalLightColor * lambert);
 
-		// Compute anti-aliased wireframe edges along the UV boundaries.
-		vec2 afwidth = fwidth(vUv);
-		float lineU = 1.0 - smoothstep(0.0, thickness * afwidth.x, min(vUv.x, 1.0 - vUv.x));
-		float lineV = 1.0 - smoothstep(0.0, thickness * afwidth.y, min(vUv.y, 1.0 - vUv.y));
-		float edge = max(lineU, lineV);
+	// 	// Compute anti-aliased wireframe edges along the UV boundaries.
+	// 	vec2 afwidth = fwidth(vUv);
+	// 	float lineU = 1.0 - smoothstep(0.0, thickness * afwidth.x, min(vUv.x, 1.0 - vUv.x));
+	// 	float lineV = 1.0 - smoothstep(0.0, thickness * afwidth.y, min(vUv.y, 1.0 - vUv.y));
+	// 	float edge = max(lineU, lineV);
 
-		// Blend the diffuse shading with the wireframe color.
-		vec3 finalColor = mix(diffuseColor, wireColor, edge);
+	// 	// Blend the diffuse shading with the wireframe color.
+	// 	vec3 finalColor = mix(diffuseColor, wireColor, edge);
 
-		// Blend in red for fragments near a clipping plane boundary.
-		finalColor = mix(finalColor, vec3(1.0, 0.0, 0.0), clipHighlight);
+	// 	// Blend in red for fragments near a clipping plane boundary.
+	// 	finalColor = mix(finalColor, vec3(1.0, 0.0, 0.0), clipHighlight);
 
-		gl_FragColor = vec4(finalColor, 1.0);
-		}
-		`,
+	// 	gl_FragColor = vec4(finalColor, 1.0);
+	// 	}
+	// 	`,
+		// fragmentShader: `
+		// 		#include <clipping_planes_pars_fragment>
+		// 		varying vec3 vViewPosition;
+		// 		uniform float thickness;
+		// 		uniform float highlightThickness; // controls the width of the red highlight
+		// 		uniform vec3 baseColor;
+		// 		uniform vec3 wireColor;
+		// 		uniform vec3 ambientLight;
+		// 		uniform vec3 directionalLightColor;
+		// 		uniform vec3 lightDirection;
+
+		// 		uniform float specularIntensity;
+		// 		uniform float shininess;
+
+		// 		varying vec2 vUv;
+		// 		varying vec3 vNormal;
+
+		// 		void main() {
+		// 			#include <clipping_planes_fragment>
+
+		// 			float clipHighlight = 0.0;
+		// 			#if NUM_CLIPPING_PLANES > 0
+		// 			for (int i = 0; i < NUM_CLIPPING_PLANES; i++) {
+		// 				vec4 plane = clippingPlanes[i];
+		// 				float d = abs(dot(vViewPosition, plane.xyz) - plane.w);
+		// 				float h = 1.0 - smoothstep(0.0, highlightThickness * fwidth(d), d);
+		// 				clipHighlight = max(clipHighlight, h);
+		// 			}
+		// 			#endif
+
+		// 			// Normalized vectors
+		// 			vec3 N = normalize(vNormal);
+		// 			vec3 L = normalize(lightDirection);
+		// 			vec3 V = normalize(-vViewPosition);   // view direction
+		// 			vec3 R = reflect(-L, N);              // reflection vector
+
+		// 			// Diffuse term
+		// 			float lambert = max(dot(N, L), 0.0);
+		// 			vec3 color = baseColor * (ambientLight + directionalLightColor * lambert);
+
+		// 			// Specular term
+		// 			float spec = pow(max(dot(R, -V), 0.0), shininess);
+		// 			vec3 specularColor = directionalLightColor * specularIntensity * spec;
+		// 			color += specularColor;
+		// 			// Wireframe edges
+		// 			vec2 afwidth = fwidth(vUv);
+		// 			float lineU = 1.0 - smoothstep(0.0, thickness * afwidth.x, min(vUv.x, 1.0 - vUv.x));
+		// 			float lineV = 1.0 - smoothstep(0.0, thickness * afwidth.y, min(vUv.y, 1.0 - vUv.y));
+		// 			float edge = max(lineU, lineV);
+
+		// 			vec3 finalColor = mix(color, wireColor, edge);
+
+		// 			// Highlight near clipping plane
+		// 			finalColor = mix(finalColor, vec3(1.0, 0.0, 0.0), clipHighlight);
+
+		// 			gl_FragColor = vec4(finalColor, 1.0);
+		// 		}
+		// 	`,
+			fragmentShader: `
+    #include <clipping_planes_pars_fragment>
+    varying vec3 vViewPosition;
+    uniform float thickness;
+    uniform float highlightThickness;
+    uniform vec3 baseColor;
+    uniform vec3 wireColor;
+    uniform vec3 ambientLight;
+    uniform vec3 directionalLightColor;
+    uniform vec3 lightDirection;
+
+    uniform float specularIntensity;
+    uniform float shininess;
+
+    // New uniform
+    uniform float highlightLineDensity;
+
+    varying vec2 vUv;
+    varying vec3 vNormal;
+
+    void main() {
+        #include <clipping_planes_fragment>
+
+        float clipHighlight = 0.0;
+        #if NUM_CLIPPING_PLANES > 0
+        for (int i = 0; i < NUM_CLIPPING_PLANES; i++) {
+            vec4 plane = clippingPlanes[i];
+            float d = abs(dot(vViewPosition, plane.xyz) - plane.w);
+            float h = 1.0 - smoothstep(0.0, highlightThickness * fwidth(d), d);
+            clipHighlight = max(clipHighlight, h);
+        }
+        #endif
+
+        // Normalized vectors
+        vec3 N = normalize(vNormal);
+        vec3 L = normalize(lightDirection);
+        vec3 V = normalize(-vViewPosition);
+        vec3 R = reflect(-L, N);
+
+        // Diffuse term
+        float lambert = max(dot(N, L), 0.0);
+        vec3 color = baseColor * (ambientLight + directionalLightColor * lambert);
+
+        // Specular term
+        float spec = pow(max(dot(R, -V), 0.0), shininess);
+        vec3 specularColor = directionalLightColor * specularIntensity * spec;
+        color += specularColor;
+
+        // Wireframe edges
+        vec2 afwidth = fwidth(vUv);
+        float lineU = 1.0 - smoothstep(0.0, thickness * afwidth.x, min(vUv.x, 1.0 - vUv.x));
+        float lineV = 1.0 - smoothstep(0.0, thickness * afwidth.y, min(vUv.y, 1.0 - vUv.y));
+        float edge = max(lineU, lineV);
+
+        vec3 finalColor = mix(color, wireColor, edge);
+
+        // === Highlight hatch lines (from second shader idea) ===
+        // create a stripe-like pattern using the normal direction
+        float highlightPattern = fract(dot(N, vec3(1.0, -1.0, 1.0)) * 10.0); 
+        float highlight = highlightPattern > highlightLineDensity ? 0.6 : 1.0;
+
+        finalColor *= highlight;
+
+        // Clipping plane highlight
+        finalColor = mix(finalColor, vec3(1.0, 0.0, 0.0), clipHighlight);
+
+        gl_FragColor = vec4(finalColor, 1.0);
+    }
+`,
 
 			transparent: true,
 			side: THREE.DoubleSide,
@@ -420,6 +566,98 @@ function createShaderMaterial( shader, light, ambientLight ) {
 		}
 
 		//
+		function frameObject(object, camera, controls) {
+			// Compute bounding box
+			const box = new THREE.Box3().setFromObject(object);
+			const center = box.getCenter(new THREE.Vector3());
+			const size = box.getSize(new THREE.Vector3());
+
+			// Get the largest dimension
+			const maxExtent = Math.max(size.x, size.y, size.z);
+
+			// Set OrbitControls target to the center of the object
+			controls.target.copy(center);
+			controls.update();
+
+			// Compute distance so object fits in view
+			const fov = THREE.MathUtils.degToRad(camera.fov); // vertical fov in radians
+			const fitHeightDistance = maxExtent / (2 * Math.tan(fov / 2));
+			const fitWidthDistance = fitHeightDistance / camera.aspect;
+			const distance = Math.max(fitHeightDistance, fitWidthDistance);
+
+			// Place the camera at [0, 0, distance] offset from center
+			camera.position.copy(center.clone().add(new THREE.Vector3(0, 0, distance * 2)));
+
+			// Point camera at the center
+			camera.lookAt(center);
+		}
+
+		function buildThickWireframeFromOBJText(objText) {
+			const vertices = [];
+			const edges = new Set();
+
+			const lines = objText.split('\n');
+
+			for (const line of lines) {
+				const parts = line.trim().split(/\s+/);
+
+				if (parts[0] === 'v') {
+				// Vertex line
+				vertices.push([
+					parseFloat(parts[1]),
+					parseFloat(parts[2]),
+					parseFloat(parts[3])
+				]);
+				}
+
+				if (parts[0] === 'f') {
+				// Face line: f v1 v2 v3 v4 (could be tris or quads)
+				const faceIndices = parts.slice(1).map(p => {
+					// Handle "12/34/56" style too
+					return parseInt(p.split('/')[0], 10) - 1; // OBJ indices are 1-based
+				});
+
+				// Add edges (consecutive verts, plus wraparound)
+				for (let i = 0; i < faceIndices.length; i++) {
+					const a = faceIndices[i];
+					const b = faceIndices[(i + 1) % faceIndices.length];
+					const key = a < b ? `${a},${b}` : `${b},${a}`;
+					edges.add(key);
+				}
+				}
+			}
+
+			// Build line positions
+			const linePositions = [];
+			for (const key of edges) {
+				const [a, b] = key.split(',').map(Number);
+				const va = vertices[a];
+				const vb = vertices[b];
+				linePositions.push(va[0], va[1], va[2], vb[0], vb[1], vb[2]);
+			}
+
+			// Convert to LineSegmentsGeometry
+			const lineGeom = new LineSegmentsGeometry();
+			lineGeom.setPositions(linePositions);
+
+			// Build LineMaterial with guiState settings
+			const lineMat = new LineMaterial({
+				color: guiState['wireColor'],
+				linewidth: guiState['controlMeshThickness'], // pixels (if worldUnits=false)
+				worldUnits: false,
+				dashed: guiState['controlMeshDashed'],
+				dashScale: guiState['controlMeshDashScale']
+			});
+
+			// Required for correct scaling
+			lineMat.resolution.set(window.innerWidth, window.innerHeight);
+
+			const wireframe = new Line2(lineGeom, lineMat);
+			wireframe.computeLineDistances();
+			wireframe.needsUpdate = true;
+			return wireframe;
+			}
+
 
 		function setupGui() {
 
@@ -432,6 +670,13 @@ function createShaderMaterial( shader, light, ambientLight ) {
                 reader.onload = function(event) {
                     const fileContent = new Uint8Array(event.target.result);
                     inputLength = fileContent.length;
+					if(controlMesh){
+						scene.remove(controlMesh);
+					}
+					controlMesh = buildThickWireframeFromOBJText(new TextDecoder().decode(fileContent));
+					scene.add( controlMesh );
+					controlMesh.visible = guiState['showControlMesh'];
+					frameObject(controlMesh, camera, controls);
 
                     // Allocate memory in WASM heap for the file content
                     Module.HEAPU8.set(fileContent, inputBufferPtr); // Copy file content to the WASM heap
@@ -441,9 +686,9 @@ function createShaderMaterial( shader, light, ambientLight ) {
                     mesh.geometry.index.needsUpdate = true;
                     mesh.geometry.attributes.uv.needsUpdate = true;
                     mesh.geometry.setDrawRange(0, numFaceIndeces);
-                    mesh.geometry.computeVertexNormals();
-
+                    // mesh.geometry.computeVertexNormals();
                 };
+
                 // Wait for the loading screen to show before reading the file
                 setTimeout(() => {
                     reader.readAsArrayBuffer(file);
@@ -503,7 +748,7 @@ function createShaderMaterial( shader, light, ambientLight ) {
 				// thickness:0.5,
 
 				'x offset': 0,
-				'y offset': 1,
+				'y offset': 0,
 				'z offset': 0,
 
                 'x rotation': 0,
@@ -511,6 +756,30 @@ function createShaderMaterial( shader, light, ambientLight ) {
                 'z rotation': 0,
 
 				'scale': 1,
+
+				wireColor: 0x000000,
+				baseColor: 0xc7c7c7,
+				isoLineThickness: 1.5,
+				clipHighlightThickness: 2.0,
+				showGrid: false,
+				backgroundColor: 0xeeeeee,
+				showShadow: false,
+				ambientLightColor: 0xffffff,
+				directionalLightColor: 0xffffff,
+				lightDirectionX: 0,
+				lightDirectionY: 10,
+				lightDirectionZ: 0,
+				specularIntensity: 0.5,
+				shininess: 100.0,
+				showControlMesh: false,
+				showSurface: true,
+
+				controlMeshDashed: false,
+				controlMeshDashScale: 1,
+				controlMeshThickness: 1.0,
+
+				highlightLineDensity: 1.0,
+
 
 				'clipping enabled': false,
 				'clipping plane distance': 0,
@@ -641,6 +910,108 @@ function createShaderMaterial( shader, light, ambientLight ) {
             h.add( guiState, 'z rotation', -Math.PI, Math.PI, 0.01 );
 
 			h.add( guiState, 'scale', 0.1, 3, 0.01 );
+
+			h = gui.addFolder( 'Visuals' );
+			h.addColor( guiState, 'wireColor' ).onChange( function ( color ) {
+				materials['patches'].uniforms.wireColor.value.setHex( color );
+				if(controlMesh){
+					controlMesh.material.color.setHex( color );
+				}
+				toUpdate = true;
+			} );
+			h.addColor( guiState, 'baseColor' ).onChange( function ( color ) {
+				materials['patches'].uniforms.baseColor.value.setHex( color );
+				toUpdate = true;
+			} );
+			h.add( guiState, 'isoLineThickness', 0.0, 5, 0.1 ).onChange( function ( value ) {
+				materials['patches'].uniforms.thickness.value = value;
+				toUpdate = true;
+			} );
+			h.add( guiState, 'clipHighlightThickness', 0.0, 5, 0.1 ).onChange( function ( value ) {
+				materials['patches'].uniforms.highlightThickness.value = value;
+				toUpdate = true;
+			} );
+			h.add( guiState, 'showGrid' ).onChange( function ( show ) {
+				gridHelper.visible = show;
+				toUpdate = true;
+			} );
+			h.addColor( guiState, 'backgroundColor' ).onChange( function ( color ) {
+				scene.background.setHex( color );
+				toUpdate = true;
+			} );
+			h.add( guiState, 'showShadow' ).onChange( function ( show ) {
+				ground.visible = show;
+				toUpdate = true;
+			} );
+			h.addColor( guiState, 'ambientLightColor' ).onChange( function ( color ) {
+				ambientLight.color.setHex( color );
+				toUpdate = true;
+			} );
+			h.addColor( guiState, 'directionalLightColor' ).onChange( function ( color ) {
+				light.color.setHex( color );
+				toUpdate = true;
+			} );
+			h.add( guiState, 'lightDirectionX', -10, 10, 0.1 ).onChange( function ( value ) {
+				light.position.x = value;
+				materials['patches'].uniforms.lightDirection.value = light.position.clone().normalize();
+				toUpdate = true;
+			} );
+			h.add( guiState, 'lightDirectionY', -10, 10, 0.1 ).onChange( function ( value ) {
+				light.position.y = value;
+				materials['patches'].uniforms.lightDirection.value = light.position.clone().normalize();
+				toUpdate = true;
+			} );
+			h.add( guiState, 'lightDirectionZ', -10, 10, 0.1 ).onChange( function ( value ) {
+				light.position.z = value;
+				materials['patches'].uniforms.lightDirection.value = light.position.clone().normalize();
+				toUpdate = true;
+			} );
+			h.add( guiState, 'specularIntensity', 0, 2, 0.01 ).onChange( function ( value ) {
+				materials['patches'].uniforms.specularIntensity.value = value;
+				toUpdate = true;
+			} );
+			h.add( guiState, 'shininess', 1, 500, 1 ).onChange( function ( value ) {
+				materials['patches'].uniforms.shininess.value = value;
+				toUpdate = true;
+			} );
+			h.add( guiState, 'showControlMesh' ).onChange( function ( show ) {
+				if(controlMesh){
+					controlMesh.visible = show;
+				}
+				toUpdate = true;
+			} );
+			h.add( guiState, 'showSurface' ).onChange( function ( show ) {
+				mesh.visible = show;
+				toUpdate = true;
+			} );
+			h.add( guiState, 'controlMeshDashed' ).onChange( function ( dashed ) {
+				if(controlMesh){
+					controlMesh.material.dashed = dashed;
+					controlMesh.material.needsUpdate = true;
+				}
+				toUpdate = true;
+			} );
+			h.add( guiState, 'controlMeshDashScale', 0.0, 50, 0.1 ).onChange( function ( scale ) {
+				if(controlMesh){
+					controlMesh.material.dashScale = scale;
+					controlMesh.material.needsUpdate = true;
+				}
+				toUpdate = true;
+			} );
+			h.add( guiState, 'controlMeshThickness', 0.0, 10, 0.1 ).onChange( function ( thickness ) {
+				if(controlMesh){
+					controlMesh.material.linewidth = thickness;
+					controlMesh.material.needsUpdate = true;
+				}
+				toUpdate = true;
+			} );
+			h.add( guiState, 'highlightLineDensity', 0.0, 1.0, 0.01 ).onChange( function ( value ) {
+				materials['patches'].uniforms.highlightLineDensity.value = value;
+				toUpdate = true;
+			} );
+
+
+
 			h = gui.addFolder('Clipping');
 			h.add(guiState, 'clipping enabled').name('Enabled').onChange( function ( enabled ) {
 				if ( enabled ) {
@@ -687,6 +1058,11 @@ function createShaderMaterial( shader, light, ambientLight ) {
 				mesh.position.set(guiState['x offset'], guiState['y offset'], guiState['z offset']);
                 mesh.scale.set(guiState['scale'], guiState['scale'], guiState['scale']);
                 mesh.rotation.set(guiState['x rotation'], guiState['y rotation'], guiState['z rotation']);
+				if(controlMesh){
+					controlMesh.position.set(guiState['x offset'], guiState['y offset'], guiState['z offset']);
+					controlMesh.scale.set(guiState['scale'], guiState['scale'], guiState['scale']);
+					controlMesh.rotation.set(guiState['x rotation'], guiState['y rotation'], guiState['z rotation']);
+				}
 				toUpdate = false;
 			}
 

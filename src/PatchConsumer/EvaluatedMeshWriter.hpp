@@ -23,5 +23,6 @@ public:
 private:
     MeshType* mesh;
     MeshType::Point de_casteljau_surface(float u, float v, const Patch a_Patch);
+    MeshType::Point de_casteljau_normal(float u, float v, const Patch& a_Patch);
     void create_bezier_surface_mesh(const Patch a_Patch, int n, MeshType *mesh);
 };

@@ -95,7 +95,7 @@ extern "C" {
 
         delete t_Writer;
         std::cout << "Vertices: " << t_Mesh.n_vertices() << " Faces: " << t_Mesh.n_faces() << std::endl;
-        scaleAndTranslateMesh(t_Mesh);
+        // scaleAndTranslateMesh(t_Mesh);
         // std::string temp = saveMeshToString(t_Mesh);
         for (int i = 0; i < t_Mesh.n_vertices(); i++) {
             MeshType::Point p = t_Mesh.point(MeshType::VertexHandle(i));
