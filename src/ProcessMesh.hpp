@@ -34,3 +34,22 @@ void process_mesh(MeshType& a_Mesh, PatchConsumer* a_Consumer, const bool a_IsDe
  * @return A vector of PatchBuilders for all identified PnS patches in the mesh.
  */
 std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh);
+
+/**
+ * @brief Augments the control mesh such that the control points at boundary layer represents the position 
+ * and control points at the next layer represent the gradient at the boundary.
+ * Fails if the mesh boundary is not all quads.
+ * 
+ * @param a_Mesh 
+ * @return Augmented mesh so that PnS surface has the appropriate boundary conditions. 
+ */
+MeshType interpretGradientHandles(MeshType& a_Mesh);
+
+/**
+ * @brief Augments the control mesh such that the gradient in the normal direction of the boundary is fixed.
+ * @todo Allow setting this to a specific value/function.
+ * 
+ * @param a_Mesh 
+ * @return MeshType 
+ */
+MeshType setBoundaryGradient(MeshType& a_Mesh);

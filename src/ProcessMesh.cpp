@@ -91,3 +91,131 @@ std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh)
 
 	return t_PatchBuilders;
 }
+
+MeshType interpretGradientHandles(MeshType& a_Mesh){
+	// Setup vertex mapping if it doesn't exist
+	if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
+        // create property if it doesn't exist
+        auto t_vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+        for (auto v : a_Mesh.vertices()) {
+            t_vertexMapping[v] = VertexMapping();
+            t_vertexMapping[v].indices.push_back(v);
+            t_vertexMapping[v].mapping.push_back(1.0);
+        }
+    }
+	MeshType t_AugmentedMesh;
+	
+	// Copy original vertices and their mappings
+	auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+	auto augmentedVertexMapping = OpenMesh::VProp<VertexMapping>(t_AugmentedMesh, "vertex_mapping");
+	for(auto v : a_Mesh.vertices()){
+		auto vh = t_AugmentedMesh.add_vertex(a_Mesh.point(v));
+		augmentedVertexMapping[vh] = vertexMapping[v];
+	}
+	// Add all faces from original mesh
+	for(auto f : a_Mesh.faces()){
+		// Faces at boundary must be quads
+		if(a_Mesh.valence(f) != 4 && a_Mesh.is_boundary(f)){
+			return a_Mesh;
+		}
+		std::vector<MeshType::VertexHandle> faceVerts;
+		for(auto fv_it = a_Mesh.fv_begin(f); fv_it != a_Mesh.fv_end(f); ++fv_it){
+			faceVerts.push_back(t_AugmentedMesh.vertex_handle(fv_it->idx()));
+		}
+		t_AugmentedMesh.add_face(faceVerts);
+	}
+	// Set the last layer vertices to correspoinding inner layer
+
+    for (auto he_itr = a_Mesh.halfedges_begin(); he_itr != a_Mesh.halfedges_end(); ++he_itr)
+    {
+        if (a_Mesh.is_boundary(he_itr) == false)
+            continue;
+
+        // boundry found   
+		auto boundarVh = a_Mesh.to_vertex_handle(*he_itr);          
+		auto handleVh = a_Mesh.from_vertex_handle(a_Mesh.prev_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
+
+
+		if(a_Mesh.valence(boundarVh) == 3) { // Edge case
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundarVh.idx())] = vertexMapping[boundarVh] * 2 - vertexMapping[handleVh];
+			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(boundarVh.idx()), a_Mesh.point(boundarVh) * 2 - a_Mesh.point(handleVh));
+		}
+		else if(a_Mesh.valence(boundarVh) == 2) { // Corner case
+			auto adjVh = a_Mesh.to_vertex_handle(*he_itr);
+			auto acrossVh = a_Mesh.to_vertex_handle(a_Mesh.next_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundarVh.idx())] = vertexMapping[boundarVh] * 4 - vertexMapping[handleVh] * 2 - vertexMapping[adjVh] * 2 + vertexMapping[acrossVh];
+			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(boundarVh.idx()), a_Mesh.point(boundarVh) * 4 - a_Mesh.point(handleVh) * 2 - a_Mesh.point(adjVh) * 2 + a_Mesh.point(acrossVh));
+		}
+		else 
+		{
+			return a_Mesh; // Not a valid PnS coontrol mesh with handles
+		}
+
+        
+    }
+	return t_AugmentedMesh;
+}
+
+MeshType setBoundaryGradient(MeshType& a_Mesh){
+	// Setup vertex mapping if it doesn't exist
+	if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
+        // create property if it doesn't exist
+        auto t_vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+        for (auto v : a_Mesh.vertices()) {
+            t_vertexMapping[v] = VertexMapping();
+            t_vertexMapping[v].indices.push_back(v);
+            t_vertexMapping[v].mapping.push_back(1.0);
+        }
+    }
+	MeshType t_AugmentedMesh;
+	
+	// Copy original vertices and their mappings
+	auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+	auto augmentedVertexMapping = OpenMesh::VProp<VertexMapping>(t_AugmentedMesh, "vertex_mapping");
+	for(auto v : a_Mesh.vertices()){
+		auto vh = t_AugmentedMesh.add_vertex(a_Mesh.point(v));
+		augmentedVertexMapping[vh] = vertexMapping[v];
+	}
+	// Add all faces from original mesh
+	for(auto f : a_Mesh.faces()){
+		// Faces at boundary must be quads
+		if(a_Mesh.valence(f) != 4 && a_Mesh.is_boundary(f)){
+			return a_Mesh;
+		}
+		std::vector<MeshType::VertexHandle> faceVerts;
+		for(auto fv_it = a_Mesh.fv_begin(f); fv_it != a_Mesh.fv_end(f); ++fv_it){
+			faceVerts.push_back(t_AugmentedMesh.vertex_handle(fv_it->idx()));
+		}
+		t_AugmentedMesh.add_face(faceVerts);
+	}
+	// Set the last layer vertices to correspoinding inner layer
+
+    for (auto he_itr = a_Mesh.halfedges_begin(); he_itr != a_Mesh.halfedges_end(); ++he_itr)
+    {
+        if (a_Mesh.is_boundary(he_itr) == false)
+            continue;
+
+        // boundry found   
+		auto boundarVh = a_Mesh.to_vertex_handle(*he_itr);          
+		auto innerVh = a_Mesh.from_vertex_handle(a_Mesh.prev_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
+
+
+		if(a_Mesh.valence(boundarVh) == 3) { // Edge case
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(innerVh.idx())] = vertexMapping[boundarVh];
+			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(innerVh.idx()), a_Mesh.point(boundarVh));
+		}
+		else if(a_Mesh.valence(boundarVh) == 2) { // Corner case
+			auto adjVh = a_Mesh.to_vertex_handle(*he_itr);
+			auto acrossVh = a_Mesh.to_vertex_handle(a_Mesh.next_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(acrossVh.idx())] = vertexMapping[boundarVh];
+			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(acrossVh.idx()), a_Mesh.point(boundarVh));
+		}
+		else 
+		{
+			return a_Mesh; // Not a valid PnS coontrol mesh with handles
+		}
+
+        
+    }
+	return t_AugmentedMesh;
+}

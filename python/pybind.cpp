@@ -254,6 +254,31 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
             Returns:
                 List[PatchBuilder]
         )pbdoc");
+    m.def("interpret_gradient_handles",
+        &interpretGradientHandles,
+        py::arg("mesh"),
+        R"pbdoc(
+            Augments the control mesh such that the control points at boundary layer represents the position 
+            and control points at the next layer represent the gradient at the boundary.
+            Fails if the mesh boundary is not all quads.
+
+            Args:
+                mesh (Pns_control_mesh)
+
+            Returns:
+                Pns_control_mesh: Augmented mesh so that PnS surface has the appropriate boundary conditions. 
+        )pbdoc");
+    m.def("set_boundary_gradient",
+        &setBoundaryGradient,
+        py::arg("mesh"),
+        R"pbdoc(
+            Augments the control mesh such that the gradient in the normal direction of the boundary is fixed.
+            Args:
+                mesh (Pns_control_mesh)
+
+            Returns:
+                Pns_control_mesh
+        )pbdoc");
     py::class_<PatchConsumer>(m, "PatchConsumer", R"pbdoc(
         Abstract class for writing ``Patch`` objects.
     )pbdoc")
