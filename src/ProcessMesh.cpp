@@ -141,7 +141,7 @@ MeshType interpretGradientHandles(MeshType& a_Mesh){
 			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(boundarVh.idx()), a_Mesh.point(boundarVh) * 2 - a_Mesh.point(handleVh));
 		}
 		else if(a_Mesh.valence(boundarVh) == 2) { // Corner case
-			auto adjVh = a_Mesh.to_vertex_handle(*he_itr);
+			auto adjVh = a_Mesh.from_vertex_handle(*he_itr);
 			auto acrossVh = a_Mesh.to_vertex_handle(a_Mesh.next_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
 			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundarVh.idx())] = vertexMapping[boundarVh] * 4 - vertexMapping[handleVh] * 2 - vertexMapping[adjVh] * 2 + vertexMapping[acrossVh];
 			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(boundarVh.idx()), a_Mesh.point(boundarVh) * 4 - a_Mesh.point(handleVh) * 2 - a_Mesh.point(adjVh) * 2 + a_Mesh.point(acrossVh));
@@ -201,13 +201,13 @@ MeshType setBoundaryGradient(MeshType& a_Mesh){
 
 
 		if(a_Mesh.valence(boundarVh) == 3) { // Edge case
-			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(innerVh.idx())] = vertexMapping[boundarVh];
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundarVh.idx())] = vertexMapping[innerVh];
 			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(innerVh.idx()), a_Mesh.point(boundarVh));
 		}
 		else if(a_Mesh.valence(boundarVh) == 2) { // Corner case
-			auto adjVh = a_Mesh.to_vertex_handle(*he_itr);
+			auto adjVh = a_Mesh.from_vertex_handle(*he_itr);
 			auto acrossVh = a_Mesh.to_vertex_handle(a_Mesh.next_halfedge_handle(a_Mesh.opposite_halfedge_handle(*he_itr)));
-			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(acrossVh.idx())] = vertexMapping[boundarVh];
+			augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundarVh.idx())] = vertexMapping[acrossVh];
 			// t_AugmentedMesh.set_point(t_AugmentedMesh.vertex_handle(acrossVh.idx()), a_Mesh.point(boundarVh));
 		}
 		else 
