@@ -6,6 +6,10 @@
 #include "PatchConsumer/BVWriter.hpp"
 #include "PatchConsumer/IGSWriter.hpp"
 #include "PatchConsumer/STEPWriter.hpp"
+#include "api/PnSpline.hpp"
+#include "api/PnSpline_impl.hpp"
+#include "api/PnSPatch.hpp"
+#include "api/PnSPatch_impl.hpp"
 
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <vector>
@@ -129,6 +133,126 @@ extern "C"
         }
     }
     
+//-----------------------------------------------------------------------------
+// PnSpline Functions                                                         |
+//-----------------------------------------------------------------------------
+    PnSpline* PnSplineCreate_Interop()
+    {
+        return new PnSpline();
+    }
+
+    PnSpline* PnSplineCreateFromData_Interop(const double* vertices, int vertexCount, 
+                                             const int* faceIndices, const int* faceSizes, 
+                                             int faceCount, bool degRaise)
+    {
+        std::vector<std::array<double, 3>> controlPoints;
+        controlPoints.reserve(vertexCount);
+        for (int i = 0; i < vertexCount; i++) {
+            controlPoints.push_back({vertices[i*3], vertices[i*3+1], vertices[i*3+2]});
+        }
+
+        std::vector<std::vector<uint>> controlIndices;
+        controlIndices.reserve(faceCount);
+        
+        int offset = 0;
+        for (int i = 0; i < faceCount; i++) {
+            std::vector<uint> face;
+            face.reserve(faceSizes[i]);
+            for (uint64_t j = 0; j < faceSizes[i]; j++) {
+                face.push_back(faceIndices[offset + j]);
+            }
+            controlIndices.push_back(face);
+            offset += faceSizes[i];
+        }
+
+        return new PnSpline(controlPoints, controlIndices, degRaise);
+    }
+
+    void PnSplineDestroy_Interop(PnSpline* spline)
+    {
+        delete spline;
+    }
+
+    void PnSplineDegRaise_Interop(PnSpline* spline)
+    {
+        if (spline) spline->degRaise();
+    }
+
+    uint32_t PnSplineGetNumPatches_Interop(const PnSpline* spline)
+    {
+        if (!spline) return 0;
+        return spline->numPatches();
+    }
+
+    PnSPatch* PnSplineGetPatch_Interop(const PnSpline* spline, uint32_t index)
+    {
+        if (!spline) return nullptr;
+        PnSPatch patch = spline->getPatch(index);
+        return new PnSPatch(patch);
+    }
+
+    uint32_t PnSplineUpdateControlMesh_Interop(PnSpline* spline, const double* updatedPoints, 
+                                               int numPoints, const uint32_t* updateIndices, 
+                                               int numIndices, uint32_t* outPatchIndices, 
+                                               int maxOut)
+    {
+        if (!spline) return 0;
+
+        std::vector<std::array<double, 3>> updatedControlPoints;
+        updatedControlPoints.reserve(numPoints);
+        for (int i = 0; i < numPoints; i++) {
+            updatedControlPoints.push_back({updatedPoints[i*3], updatedPoints[i*3+1], updatedPoints[i*3+2]});
+        }
+
+        std::vector<uint32_t> indices(updateIndices, updateIndices + numIndices);
+        
+        auto result = spline->updateControlMesh(updatedControlPoints, indices);
+        
+        uint32_t count = std::min(static_cast<uint32_t>(result.size()), static_cast<uint32_t>(maxOut));
+        for (uint32_t i = 0; i < count; i++) {
+            outPatchIndices[i] = result[i];
+        }
+        
+        return count;
+    }
+
+//-----------------------------------------------------------------------------
+// PnSPatch Functions                                                         |
+//-----------------------------------------------------------------------------
+    void PnSPatchDestroy_Interop(PnSPatch* patch)
+    {
+        delete patch;
+    }
+
+    bool PnSPatchIsValid_Interop(const PnSPatch* patch)
+    {
+        if (!patch) return false;
+        return patch->isValid();
+    }
+
+    void PnSPatchDegRaise_Interop(PnSPatch* patch)
+    {
+        if (patch) patch->degRaise();
+    }
+
+    uint32_t PnSPatchGetDegreeU_Interop(const PnSPatch* patch)
+    {
+        if (!patch) return 0;
+        return patch->getDegreeU();
+    }
+
+    uint32_t PnSPatchGetDegreeV_Interop(const PnSPatch* patch)
+    {
+        if (!patch) return 0;
+        return patch->getDegreeV();
+    }
+
+    double PnSPatchGetCoefficient_Interop(const PnSPatch* patch, uint32_t i, uint32_t j, uint32_t k)
+    {
+        if (!patch) return 0.0;
+        return (*patch)(i, j, k);
+    }
+
 //-----------------------------------------------------------------------------
 // PatchBuilder functions                                                     |
 //-----------------------------------------------------------------------------

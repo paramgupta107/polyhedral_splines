@@ -2,8 +2,283 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+/** \defgroup api_group_cs Public C# API
+ *  @brief Bindings of the C++ classes for the public interface of the Polyhedral Net Splines library. @ref c_sharp_lib "Usage example"
+ */
+
 namespace PolyhedralNetSplines
 {
+    /// <summary>
+    /// Represents a PnSpline (Polyhedral net Spline) composed of piecewise polynomial patches.
+    /// </summary>
+    /**
+     * @class PolyhedralNetSplines.PnSpline
+     * @ingroup api_group_cs
+     */
+    public class PnSpline : IDisposable
+    {
+        internal IntPtr Handle { get; private set; }
+        private bool disposed = false;
+
+        /// <summary>
+        /// Construct an empty PnSpline.
+        /// </summary>
+        public PnSpline()
+        {
+            Handle = PnSplineCreate_Interop();
+        }
+
+        /// <summary>
+        /// Construct a PnSpline from control net data.
+        /// </summary>
+        /// <param name="controlPoints">3D positions of control points</param>
+        /// <param name="controlIndices">Connectivity information for the control mesh</param>
+        /// <param name="degRaise">If true, degree raise all patches up to degree 3</param>
+        public PnSpline(double[,] controlPoints, int[][] controlIndices, bool degRaise = false)
+        {
+            if (controlPoints == null)
+                throw new ArgumentNullException(nameof(controlPoints));
+            if (controlIndices == null)
+                throw new ArgumentNullException(nameof(controlIndices));
+
+            int vertexCount = controlPoints.GetLength(0);
+
+            // Flatten vertices for native call
+            double[] flatVertices = new double[vertexCount * 3];
+            for (int i = 0; i < vertexCount; i++)
+            {
+                flatVertices[i * 3] = controlPoints[i, 0];
+                flatVertices[i * 3 + 1] = controlPoints[i, 1];
+                flatVertices[i * 3 + 2] = controlPoints[i, 2];
+            }
+
+            // Prepare face data for native call
+            int[] faceSizes = new int[controlIndices.Length];
+            int totalIndices = 0;
+            for (int i = 0; i < controlIndices.Length; i++)
+            {
+                faceSizes[i] = controlIndices[i].Length;
+                totalIndices += controlIndices[i].Length;
+            }
+
+            int[] flatFaces = new int[totalIndices];
+            int index = 0;
+            for (int i = 0; i < controlIndices.Length; i++)
+            {
+                for (int j = 0; j < controlIndices[i].Length; j++)
+                {
+                    flatFaces[index++] = controlIndices[i][j];
+                }
+            }
+
+            Handle = PnSplineCreateFromData_Interop(
+                flatVertices, vertexCount,
+                flatFaces, faceSizes, controlIndices.Length, degRaise);
+        }
+
+        ~PnSpline()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (Handle != IntPtr.Zero)
+                {
+                    PnSplineDestroy_Interop(Handle);
+                    Handle = IntPtr.Zero;
+                }
+                disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Update part of the control mesh.
+        /// </summary>
+        /// <param name="updatedControlPoints">New vertex positions</param>
+        /// <param name="updateIndices">Indices of the control points to update</param>
+        /// <returns>Indices of patches that were affected by the update</returns>
+        public uint[] UpdateControlMesh(double[,] updatedControlPoints, uint[] updateIndices)
+        {
+            if (updatedControlPoints == null)
+                throw new ArgumentNullException(nameof(updatedControlPoints));
+            if (updateIndices == null)
+                throw new ArgumentNullException(nameof(updateIndices));
+
+            int numPoints = updatedControlPoints.GetLength(0);
+            double[] flatPoints = new double[numPoints * 3];
+            for (int i = 0; i < numPoints; i++)
+            {
+                flatPoints[i * 3] = updatedControlPoints[i, 0];
+                flatPoints[i * 3 + 1] = updatedControlPoints[i, 1];
+                flatPoints[i * 3 + 2] = updatedControlPoints[i, 2];
+            }
+
+            uint[] outPatchIndices = new uint[NumPatches]; // over-allocate
+            uint numUpdated = PnSplineUpdateControlMesh_Interop(
+                Handle, flatPoints, numPoints,
+                updateIndices, updateIndices.Length,
+                outPatchIndices, outPatchIndices.Length);
+
+            uint[] result = new uint[numUpdated];
+            Array.Copy(outPatchIndices, result, numUpdated);
+            return result;
+        }
+
+        /// <summary>
+        /// Degree raise all patches up to degree 3 for each parameter.
+        /// </summary>
+        public void DegRaise()
+        {
+            PnSplineDegRaise_Interop(Handle);
+        }
+
+        /// <summary>
+        /// Get the number of patches in this PnSpline.
+        /// </summary>
+        public uint NumPatches => PnSplineGetNumPatches_Interop(Handle);
+
+        /// <summary>
+        /// Access an individual patch by index.
+        /// </summary>
+        /// <param name="index">Patch index in the range [0, NumPatches)</param>
+        /// <returns>A patch object</returns>
+        public PnSPatch GetPatch(uint index)
+        {
+            IntPtr patchHandle = PnSplineGetPatch_Interop(Handle, index);
+            if (patchHandle == IntPtr.Zero)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return new PnSPatch(patchHandle);
+        }
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr PnSplineCreate_Interop();
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr PnSplineCreateFromData_Interop(
+            double[] vertices, int vertexCount,
+            int[] faceIndices, int[] faceSizes, int faceCount, bool degRaise);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PnSplineDestroy_Interop(IntPtr spline);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PnSplineDegRaise_Interop(IntPtr spline);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint PnSplineGetNumPatches_Interop(IntPtr spline);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr PnSplineGetPatch_Interop(IntPtr spline, uint index);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint PnSplineUpdateControlMesh_Interop(
+            IntPtr spline, double[] updatedPoints, int numPoints,
+            uint[] updateIndices, int numIndices,
+            uint[] outPatchIndices, int maxOut);
+    }
+
+    /// <summary>
+    /// Represents a polynomial patch in Bernstein–Bézier form.
+    /// </summary>
+    /**
+     * @class PolyhedralNetSplines.PnSPatch
+     * @ingroup api_group_cs
+     */
+    public class PnSPatch : IDisposable
+    {
+        internal IntPtr Handle { get; private set; }
+        private bool disposed = false;
+
+        internal PnSPatch(IntPtr handle)
+        {
+            Handle = handle;
+        }
+
+        ~PnSPatch()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (Handle != IntPtr.Zero)
+                {
+                    PnSPatchDestroy_Interop(Handle);
+                    Handle = IntPtr.Zero;
+                }
+                disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Access Bézier coefficient by index.
+        /// </summary>
+        /// <param name="i">Index in the u-direction between 0 and DegreeU</param>
+        /// <param name="j">Index in the v-direction between 0 and DegreeV</param>
+        /// <param name="k">Dimension of control point between 0 and 2 (x, y, or z)</param>
+        /// <returns>The coefficient value</returns>
+        public double this[uint i, uint j, uint k] => PnSPatchGetCoefficient_Interop(Handle, i, j, k);
+
+        /// <summary>
+        /// Check whether this patch is valid.
+        /// </summary>
+        public bool IsValid => PnSPatchIsValid_Interop(Handle);
+
+        /// <summary>
+        /// Perform degree elevation on the patch.
+        /// </summary>
+        public void DegRaise()
+        {
+            PnSPatchDegRaise_Interop(Handle);
+        }
+
+        /// <summary>
+        /// Get the polynomial degree in the u-direction.
+        /// </summary>
+        public uint DegreeU => PnSPatchGetDegreeU_Interop(Handle);
+
+        /// <summary>
+        /// Get the polynomial degree in the v-direction.
+        /// </summary>
+        public uint DegreeV => PnSPatchGetDegreeV_Interop(Handle);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PnSPatchDestroy_Interop(IntPtr patch);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool PnSPatchIsValid_Interop(IntPtr patch);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PnSPatchDegRaise_Interop(IntPtr patch);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint PnSPatchGetDegreeU_Interop(IntPtr patch);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint PnSPatchGetDegreeV_Interop(IntPtr patch);
+
+        [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double PnSPatchGetCoefficient_Interop(IntPtr patch, uint i, uint j, uint k);
+    }
+
+
     /// <summary>
     /// Editable polygonal control net.
     /// </summary>
@@ -48,7 +323,7 @@ namespace PolyhedralNetSplines
             IntPtr meshHandle = MeshFromFile_Interop(filename);
             if (meshHandle == IntPtr.Zero)
                 throw new Exception($"Failed to load mesh from file: {filename}");
-                
+
             var mesh = new PNSControlMesh();
             mesh.Handle = meshHandle;
             return mesh;
@@ -63,14 +338,14 @@ namespace PolyhedralNetSplines
         public static PNSControlMesh FromData(float[,] vertices, int[][] faces)
         {
             int vertexCount = vertices.GetLength(0);
-            
+
             // Flatten vertices for native call
             float[] flatVertices = new float[vertexCount * 3];
             for (int i = 0; i < vertexCount; i++)
             {
-                flatVertices[i*3] = vertices[i, 0];
-                flatVertices[i*3+1] = vertices[i, 1];
-                flatVertices[i*3+2] = vertices[i, 2];
+                flatVertices[i * 3] = vertices[i, 0];
+                flatVertices[i * 3 + 1] = vertices[i, 1];
+                flatVertices[i * 3 + 2] = vertices[i, 2];
             }
 
             // Prepare face data for native call
@@ -93,9 +368,9 @@ namespace PolyhedralNetSplines
             }
 
             IntPtr meshHandle = MeshFromData_Interop(
-                flatVertices, vertexCount, 
+                flatVertices, vertexCount,
                 flatFaces, faceSizes, faces.Length);
-                
+
             var mesh = new PNSControlMesh();
             mesh.Handle = meshHandle;
             return mesh;
@@ -133,14 +408,14 @@ namespace PolyhedralNetSplines
         {
             int count = MeshGetVertexCount_Interop(Handle);
             if (count <= 0) return Array.Empty<(float, float, float)>();
-            
+
             float[] coords = new float[count * 3];
             MeshGetVertices_Interop(Handle, coords, count);
-            
+
             var result = new (float, float, float)[count];
             for (int i = 0; i < count; i++)
             {
-                result[i] = (coords[i*3], coords[i*3+1], coords[i*3+2]);
+                result[i] = (coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]);
             }
             return result;
         }
@@ -153,19 +428,19 @@ namespace PolyhedralNetSplines
         {
             int faceCount = MeshGetFaceCount_Interop(Handle);
             if (faceCount <= 0) return Array.Empty<int[]>();
-            
+
             int[] faceSizes = new int[faceCount];
             MeshGetFaceSizes_Interop(Handle, faceSizes, faceCount);
-            
+
             int totalIndices = 0;
             for (int i = 0; i < faceCount; i++) totalIndices += faceSizes[i];
-            
+
             int[] allIndices = new int[totalIndices];
             MeshGetFaceIndices_Interop(Handle, allIndices, totalIndices);
-            
+
             int[][] result = new int[faceCount][];
             int currentIndex = 0;
-            
+
             for (int i = 0; i < faceCount; i++)
             {
                 int size = faceSizes[i];
@@ -175,40 +450,40 @@ namespace PolyhedralNetSplines
                     result[i][j] = allIndices[currentIndex++];
                 }
             }
-            
+
             return result;
         }
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr MeshCreate_Interop();
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshDestroy_Interop(IntPtr mesh);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr MeshFromFile_Interop(string filename);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr MeshFromData_Interop(float[] vertices, int vertexCount, int[] faceIndices, int[] faceSizes, int faceCount);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshSetVertex_Interop(IntPtr mesh, int index, float x, float y, float z);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshGetVertex_Interop(IntPtr mesh, int index, [Out] float[] coords);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int MeshGetVertexCount_Interop(IntPtr mesh);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshGetVertices_Interop(IntPtr mesh, [Out] float[] coords, int count);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int MeshGetFaceCount_Interop(IntPtr mesh);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshGetFaceSizes_Interop(IntPtr mesh, [Out] int[] sizes, int count);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void MeshGetFaceIndices_Interop(IntPtr mesh, [Out] int[] indices, int totalCount);
     }
@@ -272,7 +547,7 @@ namespace PolyhedralNetSplines
                 int cols = PatchBuilderGetMaskCols_Interop(Handle);
                 float[] flatMask = new float[rows * cols];
                 PatchBuilderGetMask_Interop(Handle, flatMask, rows * cols);
-                
+
                 float[,] mask = new float[rows, cols];
                 for (int i = 0; i < rows; i++)
                 {
@@ -325,22 +600,22 @@ namespace PolyhedralNetSplines
             int count = PatchBuilderGetPatchCount_Interop(Handle, mesh.Handle);
             IntPtr[] patchHandles = new IntPtr[count];
             IntPtr patchArray = Marshal.AllocHGlobal(IntPtr.Size * count);
-            
+
             try
             {
                 PatchBuilderBuildPatches_Interop(Handle, mesh.Handle, patchArray);
-                
+
                 for (int i = 0; i < count; i++)
                 {
                     patchHandles[i] = Marshal.ReadIntPtr(patchArray, i * IntPtr.Size);
                 }
-                
+
                 List<Patch> patches = new List<Patch>();
                 foreach (IntPtr patchHandle in patchHandles)
                 {
                     patches.Add(new Patch(patchHandle));
                 }
-                
+
                 return patches;
             }
             finally
@@ -356,46 +631,46 @@ namespace PolyhedralNetSplines
         {
             PatchBuilderDegRaise_Interop(Handle);
         }
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderDestroy_Interop(IntPtr builder);
 
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetNeighborVertCount_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderGetNeighborVerts_Interop(IntPtr builder, [Out] int[] indices, int count);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetMaskRows_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetMaskCols_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderGetMask_Interop(IntPtr builder, [Out] float[] mask, int size);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetNumPatches_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetDegU_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetDegV_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr PatchBuilderGetPatchType_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchBuilderGetPatchCount_Interop(IntPtr builder, IntPtr mesh);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderBuildPatches_Interop(IntPtr builder, IntPtr mesh, IntPtr patchArray);
 
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchBuilderDegRaise_Interop(IntPtr builder);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr PatchBuilder_Clone_Interop(IntPtr builder);
     }
@@ -474,9 +749,9 @@ namespace PolyhedralNetSplines
             int rows = degU + 1;
             int cols = degV + 1;
             float[] flatCoefs = new float[rows * cols * 3];
-            
+
             PatchGetBBCoefs_Interop(Handle, flatCoefs, rows * cols * 3);
-            
+
             var coefs = new (float, float, float)[rows, cols];
             for (int i = 0; i < rows; i++)
             {
@@ -490,7 +765,7 @@ namespace PolyhedralNetSplines
                     );
                 }
             }
-            
+
             return coefs;
         }
 
@@ -501,25 +776,25 @@ namespace PolyhedralNetSplines
         {
             PatchDegRaise_Interop(Handle);
         }
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchDestroy_Interop(IntPtr patch);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchGetDegU_Interop(IntPtr patch);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern int PatchGetDegV_Interop(IntPtr patch);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr PatchGetGroup_Interop(IntPtr patch);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool PatchIsValid_Interop(IntPtr patch);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchGetBBCoefs_Interop(IntPtr patch, [Out] float[] coefs, int size);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchDegRaise_Interop(IntPtr patch);
     }
@@ -532,7 +807,7 @@ namespace PolyhedralNetSplines
     {
         internal IntPtr Handle { get; private set; }
         private bool disposed = false;
-        
+
         protected PatchConsumer(IntPtr handle)
         {
             Handle = handle;
@@ -587,20 +862,20 @@ namespace PolyhedralNetSplines
             if (patch == null) throw new ArgumentNullException(nameof(patch));
             PatchConsumerConsume_Interop(Handle, patch.Handle);
         }
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchConsumerDestroy_Interop(IntPtr consumer);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchConsumerStart_Interop(IntPtr consumer);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchConsumerStop_Interop(IntPtr consumer);
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PatchConsumerConsume_Interop(IntPtr consumer, IntPtr patch);
     }
-    
+
     /// <summary>
     /// .bv writer
     /// </summary>
@@ -615,7 +890,7 @@ namespace PolyhedralNetSplines
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr BVWriterCreate_Interop(string filename);
     }
-    
+
     /// <summary>
     /// .igs (IGES) surface writer
     /// </summary>
@@ -626,7 +901,7 @@ namespace PolyhedralNetSplines
             if (Handle == IntPtr.Zero)
                 throw new Exception($"Failed to create IGSWriter for file: {filename}");
         }
-        
+
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr IGSWriterCreate_Interop(string filename);
     }
@@ -648,7 +923,7 @@ namespace PolyhedralNetSplines
 
 
 
-    
+
     public static class PNS
     {
         /// <summary>
