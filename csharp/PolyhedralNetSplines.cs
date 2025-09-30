@@ -18,11 +18,17 @@ namespace PolyhedralNetSplines
     public class PnSpline : IDisposable
     {
         internal IntPtr Handle { get; private set; }
+
+        /// @cond
         private bool disposed = false;
+        /// @endcond
 
         /// <summary>
         /// Construct an empty PnSpline.
         /// </summary>
+        /// <remarks>
+        /// Generally only used for a placeholder before being assigned.
+        /// </remarks>
         public PnSpline()
         {
             Handle = PnSplineCreate_Interop();
@@ -81,6 +87,7 @@ namespace PolyhedralNetSplines
             Dispose(false);
         }
 
+        /// @cond
         public void Dispose()
         {
             Dispose(true);
@@ -99,6 +106,7 @@ namespace PolyhedralNetSplines
                 disposed = true;
             }
         }
+        /// @endcond
 
         /// <summary>
         /// Update part of the control mesh.
@@ -136,6 +144,9 @@ namespace PolyhedralNetSplines
         /// <summary>
         /// Degree raise all patches up to degree 3 for each parameter.
         /// </summary>
+        /// <remarks>
+        /// All patches with degree 3 or higher will remain unchanged.
+        /// </remarks>
         public void DegRaise()
         {
             PnSplineDegRaise_Interop(Handle);
@@ -144,13 +155,16 @@ namespace PolyhedralNetSplines
         /// <summary>
         /// Get the number of patches in this PnSpline.
         /// </summary>
+        /// <remarks>
+        /// Expression-Body Property equivalent of the C++ PnSpline::numPatches()
+        /// </remarks>
         public uint NumPatches => PnSplineGetNumPatches_Interop(Handle);
 
         /// <summary>
         /// Access an individual patch by index.
         /// </summary>
-        /// <param name="index">Patch index in the range [0, NumPatches)</param>
-        /// <returns>A patch object</returns>
+        /// <param name="index">PnSPatch index in the range [0, NumPatches)</param>
+        /// <returns>A <see cref="PnSPatch"/> object corresponding to the index.</returns>
         public PnSPatch GetPatch(uint index)
         {
             IntPtr patchHandle = PnSplineGetPatch_Interop(Handle, index);
@@ -159,6 +173,7 @@ namespace PolyhedralNetSplines
             return new PnSPatch(patchHandle);
         }
 
+        /// @cond
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr PnSplineCreate_Interop();
 
@@ -184,11 +199,15 @@ namespace PolyhedralNetSplines
             IntPtr spline, double[] updatedPoints, int numPoints,
             uint[] updateIndices, int numIndices,
             uint[] outPatchIndices, int maxOut);
+        /// @endcond
     }
 
     /// <summary>
     /// Represents a polynomial patch in Bernstein–Bézier form.
     /// </summary>
+    /// <remarks>
+    /// A <see cref="PnSPatch"/> stores the coefficients and degree information of a single spline patch.
+    /// </remarks>
     /**
      * @class PolyhedralNetSplines.PnSPatch
      * @ingroup api_group_cs
@@ -196,7 +215,10 @@ namespace PolyhedralNetSplines
     public class PnSPatch : IDisposable
     {
         internal IntPtr Handle { get; private set; }
+
+        /// @cond
         private bool disposed = false;
+        /// @endcond
 
         internal PnSPatch(IntPtr handle)
         {
@@ -208,6 +230,7 @@ namespace PolyhedralNetSplines
             Dispose(false);
         }
 
+        /// @cond
         public void Dispose()
         {
             Dispose(true);
@@ -226,6 +249,7 @@ namespace PolyhedralNetSplines
                 disposed = true;
             }
         }
+        /// @endcond
 
         /// <summary>
         /// Access Bézier coefficient by index.
@@ -238,12 +262,18 @@ namespace PolyhedralNetSplines
 
         /// <summary>
         /// Check whether this patch is valid.
-        /// </summary>
+        /// </summary>        
+        /// <remarks>
+        /// Expression-Body Property equivalent of the C++ PnSPatch.isValid()
+        /// </remarks>
         public bool IsValid => PnSPatchIsValid_Interop(Handle);
 
         /// <summary>
         /// Perform degree elevation on the patch.
         /// </summary>
+        /// <remarks>
+        /// Raises the patch degree up to 3 for each parameter. If the degree is already 3 or higher, the patch is unchanged.
+        /// </remarks>
         public void DegRaise()
         {
             PnSPatchDegRaise_Interop(Handle);
@@ -252,13 +282,20 @@ namespace PolyhedralNetSplines
         /// <summary>
         /// Get the polynomial degree in the u-direction.
         /// </summary>
+        /// <remarks>
+        /// Expression-Body Property equivalent of the C++ PnSPatch.getDegreeU()
+        /// </remarks>
         public uint DegreeU => PnSPatchGetDegreeU_Interop(Handle);
 
         /// <summary>
         /// Get the polynomial degree in the v-direction.
         /// </summary>
+        /// <remarks>
+        /// Expression-Body Property equivalent of the C++ PnSPatch.getDegreeV()
+        /// </remarks>
         public uint DegreeV => PnSPatchGetDegreeV_Interop(Handle);
 
+        /// @cond
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PnSPatchDestroy_Interop(IntPtr patch);
 
@@ -276,6 +313,7 @@ namespace PolyhedralNetSplines
 
         [DllImport("PolyhedralSplinesLib", CallingConvention = CallingConvention.Cdecl)]
         private static extern double PnSPatchGetCoefficient_Interop(IntPtr patch, uint i, uint j, uint k);
+        /// @endcond
     }
 
 
