@@ -998,6 +998,8 @@ INPUT                  = src/api/PnSpline.hpp \
                          src \
                          Doc/pages \
                          Doc/api_group.dox \
+                         Doc/api_group_cs.dox \
+                         csharp/PolyhedralNetSplines.cs \
 # INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src/api
 
 # This tag can be used to specify the character encoding of the source files
