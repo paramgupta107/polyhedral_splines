@@ -1,0 +1,29 @@
+image: emscripten/emsdk
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Build, Deploy App and Docs
+          script:
+            - apt-get update && apt-get install -y sshpass doxygen graphviz
+
+            - sshpass -p "$SERVER_PASS" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "echo '✅ SSH connection successful'"
+
+            # Build WebAssembly app
+            - emcmake cmake -B build -DBUILD_DOCS=ON
+            - cmake --build build
+
+            # Clean and deploy web app
+            - sshpass -p "$SERVER_PASS" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "rm -rf $SERVER_PATH && mkdir -p $SERVER_PATH"
+            - sshpass -p "$SERVER_PASS" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no index.html $SERVER_USER@$SERVER_HOST:$SERVER_PATH
+            - sshpass -p "$SERVER_PASS" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "rm -rf $SERVER_PATH/build && mkdir -p $SERVER_PATH/build"
+            - sshpass -p "$SERVER_PASS" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no build/*.js build/*.wasm $SERVER_USER@$SERVER_HOST:$SERVER_PATH/build
+
+
+
+            # Clean and deploy docs
+            - sshpass -p "$SERVER_PASS" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "rm -rf $DOC_PATH && mkdir -p $DOC_PATH"
+            - sshpass -p "$SERVER_PASS" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -r Doc/html/* $SERVER_USER@$SERVER_HOST:$DOC_PATH
+
+            - echo "✅ Deployment finished (App + Docs)"
