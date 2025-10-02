@@ -47,6 +47,7 @@ public:
      * @param controlPoints 3D positions of control points.
      * @param controlIndices Connectivity information for the control mesh. Indices are 0-based. Orientation of the faces must be consistent.
      * @param degRaise If true, degree raise all patches upto degree 3 for each paramter. Degree greater than 3 will remain unchanged. This is not relevant for PnS3.
+     * @param gradientHandles If true, interprets the control points such that the boundary layer represents position and the next layer represents gradients at the boundary. This requires the boundary to be all quads with boundary vertices to have valence 2(corner) or 3(edge).
      *
      * 
      * @note The PnSpline does not maintain any references to the input data but stores a copy. The input control points and indices can be safely deleted after construction.
@@ -54,7 +55,7 @@ public:
      */
     PnSpline(std::vector<std::array<double,3>>& controlPoints,
              std::vector<std::vector<uint32_t>>& controlIndices,
-             bool degRaise = false);
+             bool degRaise = false, bool gradientHandles = false);
 
     /**
      * @brief Copy constructor.
@@ -134,7 +135,7 @@ inline PnSpline::PnSpline() : impl(PnSpline_create_empty()) {}
 
 inline PnSpline::PnSpline(std::vector<std::array<double,3>>& controlPoints,
                           std::vector<std::vector<uint32_t>>& controlIndices,
-                          bool degRaise) {
+                          bool degRaise, bool gradientHandles) {
     std::vector<double> flatPts;
     flatPts.reserve(controlPoints.size() * 3);
     for (auto& p : controlPoints) {
@@ -150,7 +151,7 @@ inline PnSpline::PnSpline(std::vector<std::array<double,3>>& controlPoints,
 
     impl = PnSpline_create_from_points(flatPts.data(), controlPoints.size(),
                                        flatIndices.data(), faceSizes.data(), controlIndices.size(),
-                                       degRaise);
+                                       degRaise, gradientHandles);
 }
 
 inline PnSpline::PnSpline(const PnSpline& other)

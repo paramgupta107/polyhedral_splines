@@ -18,7 +18,7 @@ struct PnSplineImpl;
 PnSplineImpl* PnSpline_create_empty();
 PnSplineImpl* PnSpline_create_from_points(const double* points, uint64_t numPoints,
                                         const uint32_t* faceIndices, const uint64_t* faceSizes, uint64_t numFaces,
-                                        bool degRaise);
+                                        bool degRaise, bool gradientHandles = false);
 PnSplineImpl* PnSpline_clone(const PnSplineImpl* other);
 void PnSpline_destroy(PnSplineImpl* impl);
 

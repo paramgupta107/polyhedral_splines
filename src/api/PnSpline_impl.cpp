@@ -32,7 +32,10 @@ PnSplineImpl* PnSpline_create_empty() {
     return new PnSplineImpl();
 };
 
-static void initialize(PnSplineImpl* impl) {
+static void initialize(PnSplineImpl* impl, bool gradientHandles = false) {
+    if (gradientHandles) {
+        impl->controlMesh = interpretGradientHandles(impl->controlMesh);
+    }
     impl->patchBuilders = getPatchBuilders(impl->controlMesh);
     impl->vertexToPatchBuilder.clear();
     impl->patchBuilderToPatchIndex.clear();
@@ -60,7 +63,7 @@ void PnSpline_degRaise(PnSplineImpl* impl) {
 
 PnSplineImpl* PnSpline_create_from_points(const double* points, uint64_t numPoints,
                                           const uint32_t* faceIndices, const uint64_t* faceSizes, uint64_t numFaces,
-                                          bool degRaise) {
+                                          bool degRaise, bool gradientHandles) {
 
     PnSplineImpl* impl = new PnSplineImpl();
 
@@ -78,7 +81,7 @@ PnSplineImpl* PnSpline_create_from_points(const double* points, uint64_t numPoin
         offset += faceSizes[f];
     }
 
-    initialize(impl);
+    initialize(impl, gradientHandles);
     if (degRaise) {
         PnSpline_degRaise(impl);
     }
