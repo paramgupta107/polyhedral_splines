@@ -92,7 +92,7 @@ std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh)
 	return t_PatchBuilders;
 }
 
-MeshType interpretGradientHandles(MeshType& a_Mesh){
+static MeshType copyMesh(MeshType &a_Mesh){
 	// Setup vertex mapping if it doesn't exist
 	if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
         // create property if it doesn't exist
@@ -124,6 +124,13 @@ MeshType interpretGradientHandles(MeshType& a_Mesh){
 		}
 		t_AugmentedMesh.add_face(faceVerts);
 	}
+	return t_AugmentedMesh;
+}
+
+MeshType interpretGradientHandles(MeshType& a_Mesh){
+	MeshType t_AugmentedMesh = copyMesh(a_Mesh);
+	auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+	auto augmentedVertexMapping = OpenMesh::VProp<VertexMapping>(t_AugmentedMesh, "vertex_mapping");
 	// Set the last layer vertices to correspoinding inner layer
 
     for (auto he_itr = a_Mesh.halfedges_begin(); he_itr != a_Mesh.halfedges_end(); ++he_itr)
@@ -157,37 +164,9 @@ MeshType interpretGradientHandles(MeshType& a_Mesh){
 }
 
 MeshType setBoundaryGradient(MeshType& a_Mesh){
-	// Setup vertex mapping if it doesn't exist
-	if (!OpenMesh::hasProperty<OpenMesh::VertexHandle, VertexMapping>(a_Mesh, "vertex_mapping")) { 
-        // create property if it doesn't exist
-        auto t_vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
-        for (auto v : a_Mesh.vertices()) {
-            t_vertexMapping[v] = VertexMapping();
-            t_vertexMapping[v].indices.push_back(v);
-            t_vertexMapping[v].mapping.push_back(1.0);
-        }
-    }
-	MeshType t_AugmentedMesh;
-	
-	// Copy original vertices and their mappings
+	MeshType t_AugmentedMesh = copyMesh(a_Mesh);
 	auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
 	auto augmentedVertexMapping = OpenMesh::VProp<VertexMapping>(t_AugmentedMesh, "vertex_mapping");
-	for(auto v : a_Mesh.vertices()){
-		auto vh = t_AugmentedMesh.add_vertex(a_Mesh.point(v));
-		augmentedVertexMapping[vh] = vertexMapping[v];
-	}
-	// Add all faces from original mesh
-	for(auto f : a_Mesh.faces()){
-		// Faces at boundary must be quads
-		if(a_Mesh.valence(f) != 4 && a_Mesh.is_boundary(f)){
-			return a_Mesh;
-		}
-		std::vector<MeshType::VertexHandle> faceVerts;
-		for(auto fv_it = a_Mesh.fv_begin(f); fv_it != a_Mesh.fv_end(f); ++fv_it){
-			faceVerts.push_back(t_AugmentedMesh.vertex_handle(fv_it->idx()));
-		}
-		t_AugmentedMesh.add_face(faceVerts);
-	}
 	// Set the last layer vertices to correspoinding inner layer
 
     for (auto he_itr = a_Mesh.halfedges_begin(); he_itr != a_Mesh.halfedges_end(); ++he_itr)
@@ -217,5 +196,60 @@ MeshType setBoundaryGradient(MeshType& a_Mesh){
 
         
     }
+	return t_AugmentedMesh;
+}
+
+MeshType addDegenerateBoundaryLayer(MeshType& a_Mesh){
+	MeshType t_AugmentedMesh = copyMesh(a_Mesh);
+	auto vertexMapping = OpenMesh::VProp<VertexMapping>(a_Mesh, "vertex_mapping");
+	auto augmentedVertexMapping = OpenMesh::VProp<VertexMapping>(t_AugmentedMesh, "vertex_mapping");
+	// Add a degenerate layer at boundary for PnS3
+	std::map<MeshType::VertexHandle, MeshType::VertexHandle> vertexCorrespondance;
+	for(auto he_itr = t_AugmentedMesh.halfedges_begin(); he_itr != t_AugmentedMesh.halfedges_end(); ++he_itr){
+		if(t_AugmentedMesh.is_boundary(he_itr) == false)
+			continue;
+		auto boundaryVh = t_AugmentedMesh.to_vertex_handle(*he_itr);
+		if(t_AugmentedMesh.valence(boundaryVh) == 3) { // Edge case
+			auto newVh = t_AugmentedMesh.add_vertex(t_AugmentedMesh.point(t_AugmentedMesh.vertex_handle(boundaryVh.idx())));
+			augmentedVertexMapping[newVh] = augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundaryVh.idx())];
+			vertexCorrespondance[t_AugmentedMesh.vertex_handle(boundaryVh.idx())] = newVh;
+		}else if(t_AugmentedMesh.valence(boundaryVh) == 2) { // Corner case(add 3 new vertices)
+			auto newVh1 = t_AugmentedMesh.add_vertex(t_AugmentedMesh.point(t_AugmentedMesh.vertex_handle(boundaryVh.idx())));
+			auto newVh2 = t_AugmentedMesh.add_vertex(t_AugmentedMesh.point(t_AugmentedMesh.vertex_handle(boundaryVh.idx())));
+			auto newVh3 = t_AugmentedMesh.add_vertex(t_AugmentedMesh.point(t_AugmentedMesh.vertex_handle(boundaryVh.idx())));
+			augmentedVertexMapping[newVh1] = augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundaryVh.idx())];
+			augmentedVertexMapping[newVh2] = augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundaryVh.idx())];
+			augmentedVertexMapping[newVh3] = augmentedVertexMapping[t_AugmentedMesh.vertex_handle(boundaryVh.idx())];
+			vertexCorrespondance[t_AugmentedMesh.vertex_handle(boundaryVh.idx())] = newVh3;
+		}else{
+			return a_Mesh; // Not a valid PnS coontrol mesh with handles
+		}
+		
+	}
+	// Add faces for the degenerate layer
+	for(auto he_itr = a_Mesh.halfedges_begin(); he_itr != a_Mesh.halfedges_end(); ++he_itr){
+		if(a_Mesh.is_boundary(he_itr) == false)
+			continue;
+		auto currVh = a_Mesh.to_vertex_handle(*he_itr);
+		auto prevVh = a_Mesh.from_vertex_handle(*he_itr);
+		if(a_Mesh.valence(currVh) == 3){
+			auto currAddedVh = vertexCorrespondance[t_AugmentedMesh.vertex_handle(currVh.idx())];
+			auto prevAddedVh = vertexCorrespondance[t_AugmentedMesh.vertex_handle(prevVh.idx())];
+			std::vector<MeshType::VertexHandle> faceVerts = {prevVh, currVh, currAddedVh, prevAddedVh};
+			t_AugmentedMesh.add_face(faceVerts);
+		}else if(a_Mesh.valence(currVh) == 2){
+			auto currAddedVh = vertexCorrespondance[t_AugmentedMesh.vertex_handle(currVh.idx())];
+			auto cornerAddVh = t_AugmentedMesh.vertex_handle(currAddedVh.idx() - 1);
+			auto otherEdgeVh = t_AugmentedMesh.vertex_handle(currAddedVh.idx() - 2);
+			std::vector<MeshType::VertexHandle> faceVerts1 = {currVh, currAddedVh, cornerAddVh, otherEdgeVh};
+			t_AugmentedMesh.add_face(faceVerts1);
+			auto prevVh = a_Mesh.from_vertex_handle(*he_itr);
+			auto prevAddedVh = vertexCorrespondance[t_AugmentedMesh.vertex_handle(prevVh.idx())];
+			std::vector<MeshType::VertexHandle> faceVerts2 = {currVh, otherEdgeVh, prevAddedVh, prevVh};
+			t_AugmentedMesh.add_face(faceVerts2);
+		}else{
+			return a_Mesh; // Not a valid PnS coontrol mesh with handles
+		}
+	}
 	return t_AugmentedMesh;
 }

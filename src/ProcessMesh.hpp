@@ -38,6 +38,8 @@ std::vector<PatchBuilder> getPatchBuilders(MeshType& a_Mesh);
 /**
  * @brief Augments the control mesh such that the control points at boundary layer represents the position 
  * and control points at the next layer represent the gradient at the boundary.
+ * The augmentation is performed virtually using @ref VertexMapping
+ * @ref PatchBuilder "PatchBuilders" will need to be generted using augmented mesh but the original mesh will be used for building patches.
  * Fails if the mesh boundary is not all quads.
  * 
  * @param a_Mesh 
@@ -48,8 +50,16 @@ MeshType interpretGradientHandles(MeshType& a_Mesh);
 /**
  * @brief Augments the control mesh such that the gradient in the normal direction of the boundary is fixed.
  * @todo Allow setting this to a specific value/function.
- * 
+ * The augmentation is performed virtually using @ref VertexMapping
+ * @ref PatchBuilder "PatchBuilders" will need to be generted using augmented mesh but the original mesh will be used for building patches.
  * @param a_Mesh 
  * @return MeshType 
  */
 MeshType setBoundaryGradient(MeshType& a_Mesh);
+
+/**
+ * @brief Adds a degenerate boundary layer to the mesh as ghost DOFs. The new boundary vertices will same as the original boundary vertices using @ref VertexMapping
+ * @ref PatchBuilder "PatchBuilders" will need to be generted using augmented mesh but the original mesh will be used for building patches.
+ * @param a_Mesh The mesh to which the boundary layer will be added.
+ */
+MeshType addDegenerateBoundaryLayer(MeshType& a_Mesh);

@@ -279,6 +279,14 @@ PYBIND11_MODULE(polyhedral_net_splines, m) {
             Returns:
                 Pns_control_mesh
         )pbdoc");
+    m.def("add_degenerate_boundary_layer",
+        &addDegenerateBoundaryLayer,
+        py::arg("mesh"),
+        R"pbdoc(
+            Adds a degenerate boundary layer to the mesh as ghost DOFs. The new boundary vertices will same as the original boundary vertices.
+            Args:
+                mesh (Pns_control_mesh): The mesh to which the boundary layer will be added.
+        )pbdoc");
     py::class_<PatchConsumer>(m, "PatchConsumer", R"pbdoc(
         Abstract class for writing ``Patch`` objects.
     )pbdoc")

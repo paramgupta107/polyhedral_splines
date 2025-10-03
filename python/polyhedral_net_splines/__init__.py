@@ -1,4 +1,4 @@
-from .polyhedral_net_splines import Pns_control_mesh, get_patch_builders, interpret_gradient_handles, set_boundary_gradient, PatchBuilder, Patch, PatchConsumer, BVWriter, IGSWriter, STEPWriter,process_mesh
+from .polyhedral_net_splines import Pns_control_mesh, get_patch_builders, interpret_gradient_handles, set_boundary_gradient, add_degenerate_boundary_layer, PatchBuilder, Patch, PatchConsumer, BVWriter, IGSWriter, STEPWriter,process_mesh
 # from .extras import *
 
 __all__ = ["Pns_control_mesh", "get_patch_builders", "PatchBuilder", "Patch", "PatchConsumer", "BVWriter", "IGSWriter", "process_mesh", "create_bv_from_file", "create_igs_from_file", "create_bv", "create_igs"]
