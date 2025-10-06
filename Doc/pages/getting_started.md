@@ -4,3 +4,4 @@
 - \subpage web
 - \subpage cpp_lib
 - \subpage c_sharp_lib
+- <a href="dist">Pre-compiled Binaries</a>
